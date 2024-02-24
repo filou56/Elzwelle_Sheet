@@ -41,9 +41,21 @@ class sheetapp_tk(tkinter.Tk):
         
         #Make the user only being able to resize the window horrizontally
         table_frame = tkinter.Frame()
-        table = TableCanvas(table_frame)
-        table_frame.grid(row=2,column=0,columnspan=2)
+        
+        table = TableCanvas(
+            table_frame,
+            cellwidth=100, 
+            cellbackgr='white',
+            thefont=('Arial',12),
+            rowheight=18, rowheaderwidth=30,
+            rowselectedcolor='blue', 
+            read_only=False
+            )
+        
+        table_frame.grid(row=2,column=0,columnspan=1,sticky='EW')
         table.show()
+        
+        table.model.relabel_Column(1, "Test")
         
         #Make the first column (0) resize when window is resized horizontally
         self.grid_columnconfigure(0,weight=1)
