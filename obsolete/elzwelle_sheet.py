@@ -4,22 +4,17 @@ import os
 import platform
 import time
 import tkinter
-from   tkinter import ttk
 import uuid
 #import socket
 #import gspread
 import paho.mqtt.client as paho
 from paho import mqtt
-#from table import TableCanvas
-from tksheet import Sheet
-from bCNC.lib.log import null
+from table import TableCanvas
 
 # Google Spreadsheet ID for publishing times
 # Elzwelle        SPREADSHEET_ID = '1obtfHymwPSGoGoROUialryeGiMJ1vkEUWL_Gze_hyfk'
 # FilouWelle      SPREADSHEET_ID = '1M05W0igR6stS4UBPfbe7-MFx0qoe5w6ktWAcLVCDZTE'
 SPREADSHEET_ID = '1M05W0igR6stS4UBPfbe7-MFx0qoe5w6ktWAcLVCDZTE'
-
-startSheet = null
 
 #-------------------------------------------------------------------
 # Define the GUI
@@ -31,79 +26,41 @@ class sheetapp_tk(tkinter.Tk):
         self.initialize()
 
     def initialize(self):
-        noteStyle = ttk.Style()
-        noteStyle.theme_use('default')
-        noteStyle.configure("TNotebook", background='lightgray')
-        noteStyle.configure("TNotebook.Tab", background='#eeeeee')
-        noteStyle.map("TNotebook.Tab", background=[("selected", '#005fd7')],foreground=[("selected", 'white')])
+        self.grid()
         
-        self.geometry("800x600")
-        self.tabControl = ttk.Notebook(self) 
-        self.tabControl
-          
-        self.startTab = ttk.Frame(self.tabControl) 
-        self.finishTab = ttk.Frame(self.tabControl)
-        self.courseTab = ttk.Frame(self.tabControl)
-        self.inputTab = ttk.Frame(self.tabControl) 
+        label = tkinter.Label(self,text="Elzwelle Sheet V0.0",anchor="w",fg="black",bg="white")
+        label.grid(row=0,column=0,columnspan=2,sticky="EW")
         
-        self.tabControl.add(self.startTab, text ='Start') 
-        self.tabControl.add(self.finishTab, text ='Ziel') 
-        self.tabControl.add(self.courseTab, text ='Strecke') 
-        self.tabControl.add(self.inputTab, text ='Eingabe') 
-        self.tabControl.pack(expand = 1, fill ="both") 
-         
-        #----- Start Page -------
-                 
-        self.startTab.grid_columnconfigure(0, weight = 1)
-        self.startTab.grid_rowconfigure(0, weight = 1)
-        self.startSheet = Sheet(self.startTab,
-                           #data = [['00:00:00','0,00','',''] for r in range(2)],
-                           header = ['Uhrzeit','Zeitstempel','Startnummer','Kommentar'])
-        self.startSheet.enable_bindings()
-        self.startSheet.grid(column = 0, row = 0)
-        self.startSheet.grid(row = 0, column = 0, sticky = "nswe")
-        self.startSheet.span('A:').align('right')
+        #Add a label that says 'Start' at (1,0)
+        label1 = tkinter.Label(self,text="Start",relief=tkinter.SUNKEN)
+        label1.grid(row=1,column=0,sticky="EW")
+
+        #Add a label that says 'Ziel' at (1,1)
+        label2 = tkinter.Label(self,text="Ziel",relief=tkinter.SUNKEN)
+        label2.grid(row=1,column=1,sticky="EW")
         
-        #----- Finish Page -------
-                 
-        self.finishTab.grid_columnconfigure(0, weight = 1)
-        self.finishTab.grid_rowconfigure(0, weight = 1)
-        self.finishSheet = Sheet(self.finishTab,
-                           #data = [['00:00:00','0,00','',''] for r in range(200)],
-                           header = ['Uhrzeit','Zeitstempel','Startnummer','Kommentar'])
-        self.finishSheet.enable_bindings()
-        self.finishSheet.grid(column = 0, row = 0)
-        self.finishSheet.grid(row = 0, column = 0, sticky = "nswe")
-        self.finishSheet.span('A:').align('right')
+        #Make the user only being able to resize the window horrizontally
+        table_frame = tkinter.Frame()
         
-        #----- Course Page -------
+        table = TableCanvas(
+            table_frame,
+            cellwidth=100, 
+            cellbackgr='white',
+            thefont=('Arial',12),
+            rowheight=18, rowheaderwidth=30,
+            rowselectedcolor='lightblue', 
+            read_only=False
+            )
         
-        self.courseTab.grid_columnconfigure(0, weight = 1)
-        self.courseTab.grid_rowconfigure(0, weight = 1)
-        self.courseSheet = Sheet(self.courseTab,
-                           data = [['0','0','0',''] for r in range(200)],
-                           header = ['Startnummer','Tornummer','Strafzeit','Kommentar'])
-        self.courseSheet.enable_bindings()
-        self.courseSheet.grid(column = 0, row = 0)
-        self.courseSheet.grid(row = 0, column = 0, sticky = "nswe")
+        table_frame.grid(row=2,column=0,columnspan=1,sticky='EW')
+        table.show()
         
-        #----- Input Page -------
+        table.model.relabel_Column(1, "Test")
         
-        self.inputTab.grid_columnconfigure(0, weight = 1)
-        self.inputTab.grid_rowconfigure(0, weight = 1)
-        self.inputSheet = Sheet(self.inputTab,
-                           data = [[f"{r+1}",'0,00','0,00','0,00','0,00']+
-                                  [f"0" for c in range(25)] for r in range(200)],
-                           header = ['Startnummer','ZS Start','ZS Ziel','Zeit','Wertung']+
-                                    [f"{c+1}" for c in range(25)])
-        self.inputSheet.enable_bindings()
-        self.inputSheet.grid(column = 0, row = 0)
-        self.inputSheet.grid(row = 0, column = 0, sticky = "nswe")
-        for i in range(25):
-            self.inputSheet.column_width(i+5, 40, False, True) 
-        
-        inputSpan = self.inputSheet[:]
-        inputSpan.align('right')
+        #Make the first column (0) resize when window is resized horizontally
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_columnconfigure(1,weight=1)
+        #self.grid_rowconfigure(2,weight=1)
         
         self.resizable(True,True)
         
@@ -195,30 +152,22 @@ def on_message(client, userdata, msg):
         :param userdata: userdata is set when initiating the client, here it is userdata=None
         :param msg: the message with topic and payload
     """
-    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+    #print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
     
     payload = msg.payload.decode('utf-8')
     
     if msg.topic == 'elzwelle/stopwatch/start':
-        #try:
-        data = payload.split(' ')
-        message = '{:} | {:>10} | {:>2}'.format(data[0].strip(),
-                                              data[1].strip(),
-                                              data[2].strip())
-        # time_stamps_start.insert(0,message)
-        # while( len(time_stamps_start) > KEEP_NUM_TIME_STAMPS):
-        #     time_stamps_start.pop()
-        # app.startSheet.span(0).data =  [data[0].strip(),
-        #                                 data[1].strip(),
-        #                                 data[2].strip(),
-        #                                 '']
-        app.startSheet.insert_row([data[0].strip(),
-                                        data[1].strip(),
-                                        data[2].strip(),
-                                        ''])
-        time_stamps_start_dirty = True
-        #except:
-        #    print("MQTT Decode exception: ",msg.payload)
+        try:
+            data = payload.split(' ')
+            message = '{:} | {:>10} | {:>2}'.format(data[0].strip(),
+                                                  data[1].strip(),
+                                                  data[2].strip())
+            # time_stamps_start.insert(0,message)
+            # while( len(time_stamps_start) > KEEP_NUM_TIME_STAMPS):
+            #     time_stamps_start.pop()
+            time_stamps_start_dirty = True
+        except:
+            print("MQTT Decode exception: ",msg.payload)
         
 
     if msg.topic == 'elzwelle/stopwatch/finish':
