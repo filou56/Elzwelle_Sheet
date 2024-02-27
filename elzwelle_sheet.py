@@ -81,7 +81,7 @@ class sheetapp_tk(tkinter.Tk):
         self.courseTab.grid_columnconfigure(0, weight = 1)
         self.courseTab.grid_rowconfigure(0, weight = 1)
         self.courseSheet = Sheet(self.courseTab,
-                           data = [['0','0','0',''] for r in range(200)],
+                           #data = [['0','0','0',''] for r in range(200)],
                            header = ['Startnummer','Tornummer','Strafzeit','Kommentar'])
         self.courseSheet.enable_bindings()
         self.courseSheet.grid(column = 0, row = 0)
@@ -199,38 +199,35 @@ def on_message(client, userdata, msg):
     
     payload = msg.payload.decode('utf-8')
     
+    if msg.topic == 'elzwelle/stopwatch/course/data':
+        try:
+            data = payload.split(',') 
+            app.courseSheet.insert_row(data)
+            row = app.inputSheet.span("A").data.index(data[0].strip()) 
+            col = int(data[1].strip())
+            app.inputSheet.set_cell_data(row,col+4,value = data[2])
+            
+        except Exception as e:
+            print("MQTT Decode exception: ",e,payload)
+            
     if msg.topic == 'elzwelle/stopwatch/start':
-        #try:
-        data = payload.split(' ')
-        message = '{:} | {:>10} | {:>2}'.format(data[0].strip(),
-                                              data[1].strip(),
-                                              data[2].strip())
-        # time_stamps_start.insert(0,message)
-        # while( len(time_stamps_start) > KEEP_NUM_TIME_STAMPS):
-        #     time_stamps_start.pop()
-        # app.startSheet.span(0).data =  [data[0].strip(),
-        #                                 data[1].strip(),
-        #                                 data[2].strip(),
-        #                                 '']
-        app.startSheet.insert_row([data[0].strip(),
+        try:
+            data = payload.split(' ')
+            app.startSheet.insert_row([ data[0].strip(),
                                         data[1].strip(),
                                         data[2].strip(),
-                                        ''])
-        time_stamps_start_dirty = True
-        #except:
-        #    print("MQTT Decode exception: ",msg.payload)
+                                            ''])         
+        except:
+            print("MQTT Decode exception: ",msg.payload)
         
 
     if msg.topic == 'elzwelle/stopwatch/finish':
         try:
             data = payload.split(' ')
-            message = '{:} | {:>10} | {:>2}'.format(data[0].strip(),
-                                                  data[1].strip(),
-                                                  data[2].strip())
-            # time_stamps_finish.insert(0,message)
-            # while( len(time_stamps_finish) > KEEP_NUM_TIME_STAMPS):
-            #     time_stamps_finish.pop()
-            time_stamps_finish_dirty = True
+            app.finishSheet.insert_row([data[0].strip(),
+                                        data[1].strip(),
+                                        data[2].strip(),
+                                        ''])
         except:
             print("MQTT Decode exception: ",msg.payload)
             
@@ -240,7 +237,16 @@ def on_message(client, userdata, msg):
             time   = data[0].strip()
             stamp  = data[1].strip()
             number = data[2].strip()
-            message = '{:} | {:>10} | {:>2}'.format(time,stamp,number)
+            row    = app.startSheet.span("B").data.index(stamp)+1
+            app.startSheet.span("C{:}".format(row)).data = number
+            if len(data) > 3:
+                app.startSheet.span("D{:}".format(row)).data = data[3].strip()
+            
+            row = app.inputSheet.span("A").data.index(data[2].strip())
+            print(row)
+            app.inputSheet.set_cell_data(row,2,value = data[1])
+            
+            # message = '{:} | {:>10} | {:>2}'.format(time,stamp,number)
             # cell = wks_start.find(stamp)
             # if cell != None:
             #     print("ROW: ",cell.row)     
@@ -263,7 +269,16 @@ def on_message(client, userdata, msg):
             time   = data[0].strip()
             stamp  = data[1].strip()
             number = data[2].strip()
-            message = '{:} | {:>10} | {:>2}'.format(time,stamp,number)
+            row    = app.finishSheet.span("B").data.index(stamp)+1
+            app.finishSheet.span("C{:}".format(row)).data = number
+            if len(data) > 3:
+                app.finishSheet.span("D{:}".format(row)).data = data[3].strip()
+                
+            row = app.inputSheet.span("A").data.index(data[2].strip())
+            print(row)
+            app.inputSheet.set_cell_data(row,3,value = data[1])
+            
+            # message = '{:} | {:>10} | {:>2}'.format(time,stamp,number)
             # cell = wks_finish.find(stamp)
             # if cell != None:
             #     print("ROW: ",cell.row)     
@@ -280,33 +295,33 @@ def on_message(client, userdata, msg):
         except Exception as e:
             print("MQTT Decode exception: ",e,payload)
     
-    if msg.topic == 'elzwelle/stopwatch/start/get':       
-        try:
-            data = payload.split(' ')
-            message = '{:} | {:10.2f} | {:>2}'.format(data[0].strip(),
-                                                    float(data[1]),
-                                                    data[2].strip())
-#            cell = wks_start.find(data[2].strip())
-            # if cell != None:
-            #     print("ROW: ",cell.row,"COL: ",cell.col)     
-            # else:
-            #     print("Entry not found: ",payload)
-        except Exception as e:
-            print("MQTT Decode exception: ",e,payload)
-                    
-    if msg.topic == 'elzwelle/stopwatch/finish/get':       
-        try:
-            data = payload.split(' ')
-            message = '{:} | {:10.2f} | {:>2}'.format(data[0].strip(),
-                                                    float(data[1]),
-                                                    data[2].strip())
-#            cell = wks_finish.find(data[2].strip())
-            # if cell != None:
-            #     print("ROW: ",cell.row,"COL: ",cell.col)     
-            # else:
-            #     print("Entry not found: ",payload)
-        except Exception as e:
-            print("MQTT Decode exception: ",e,payload)
+#     if msg.topic == 'elzwelle/stopwatch/start/get':       
+#         try:
+#             data = payload.split(' ')
+#             message = '{:} | {:10.2f} | {:>2}'.format(data[0].strip(),
+#                                                     float(data[1]),
+#                                                     data[2].strip())
+# #            cell = wks_start.find(data[2].strip())
+#             # if cell != None:
+#             #     print("ROW: ",cell.row,"COL: ",cell.col)     
+#             # else:
+#             #     print("Entry not found: ",payload)
+#         except Exception as e:
+#             print("MQTT Decode exception: ",e,payload)
+#
+#     if msg.topic == 'elzwelle/stopwatch/finish/get':       
+#         try:
+#             data = payload.split(' ')
+#             message = '{:} | {:10.2f} | {:>2}'.format(data[0].strip(),
+#                                                     float(data[1]),
+#                                                     data[2].strip())
+# #            cell = wks_finish.find(data[2].strip())
+#             # if cell != None:
+#             #     print("ROW: ",cell.row,"COL: ",cell.col)     
+#             # else:
+#             #     print("Entry not found: ",payload)
+#         except Exception as e:
+#             print("MQTT Decode exception: ",e,payload)
 
 #-------------------------------------------------------------------
 # Main program
