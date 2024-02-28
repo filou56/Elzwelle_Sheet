@@ -3,6 +3,7 @@ import gc
 import os
 import platform
 import time
+import locale
 import tkinter
 from   tkinter import ttk
 import uuid
@@ -40,7 +41,7 @@ class sheetapp_tk(tkinter.Tk):
         noteStyle.configure("TNotebook.Tab", background='#eeeeee')
         noteStyle.map("TNotebook.Tab", background=[("selected", '#005fd7')],foreground=[("selected", 'white')])
         
-        self.geometry("800x600")
+        self.geometry("1000x400")
         self.tabControl = ttk.Notebook(self) 
         self.tabControl
           
@@ -67,6 +68,9 @@ class sheetapp_tk(tkinter.Tk):
         self.startSheet.grid(row = 0, column = 0, sticky = "nswe")
         self.startSheet.span('A:').align('right')
         
+        self.startSheet.disable_bindings("All")
+        self.startSheet.enable_bindings("edit_cell","single_select")
+        
         #----- Finish Page -------
                  
         self.finishTab.grid_columnconfigure(0, weight = 1)
@@ -79,6 +83,9 @@ class sheetapp_tk(tkinter.Tk):
         self.finishSheet.grid(row = 0, column = 0, sticky = "nswe")
         self.finishSheet.span('A:').align('right')
         
+        self.finishSheet.disable_bindings("All")
+        self.finishSheet.enable_bindings("edit_cell","single_select")
+        
         #----- Course Page -------
         
         self.courseTab.grid_columnconfigure(0, weight = 1)
@@ -89,6 +96,9 @@ class sheetapp_tk(tkinter.Tk):
         self.courseSheet.enable_bindings()
         self.courseSheet.grid(column = 0, row = 0)
         self.courseSheet.grid(row = 0, column = 0, sticky = "nswe")
+        
+        self.courseSheet.disable_bindings("All")
+        self.courseSheet.enable_bindings("edit_cell","single_select")
         
         #----- Input Page -------
         
@@ -114,7 +124,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet.popup_menu_add_command(
             "Copy to GOOGLE Sheet",
             None,
-            # index_menu=False,
+            table_menu=False,
             header_menu=False,
             empty_space_menu=False,
         )
@@ -124,9 +134,8 @@ class sheetapp_tk(tkinter.Tk):
     def penaltySum(self,row):
         sumSeconds = 0
         rowData = self.inputSheet[row].data
-        print(rowData[6::])
         for penalty in rowData[6::]:
-            sumSeconds = sumSeconds + int(penalty)
+            sumSeconds = sumSeconds + locale.atof(penalty)
         return sumSeconds   
     
     def refresh(self):
@@ -233,10 +242,9 @@ def on_message(client, userdata, msg):
             elif int(data[2]) == 2:
                 app.inputSheet[row,col+5].highlight(bg = "khaki")
             
-            sumSeconds = app.penaltySum(row)    
-            print(sumSeconds)
-            app.inputSheet.set_cell_data(row,4,value = sumSeconds)
-            
+            penaltyTime = app.penaltySum(row)    
+            app.inputSheet.set_cell_data(row,4,value = locale.format_string('%0.2f', penaltyTime) )
+            #print(sumSeconds,cellValue)
         except Exception as e:
             print("MQTT Decode exception: ",e,payload)
             
@@ -308,8 +316,16 @@ def on_message(client, userdata, msg):
                 app.finishSheet.span("D{:}".format(row)).data = data[3].strip()
                 
             row = app.inputSheet.span("A").data.index(data[2].strip())
-            print(row)
+            #print(row)
             app.inputSheet.set_cell_data(row,2,value = data[1])
+            tsStart  = locale.atof(app.inputSheet.get_cell_data(row,1))
+            tsFinish = locale.atof(app.inputSheet.get_cell_data(row,2))
+            tripTime = tsFinish - tsStart
+            app.inputSheet.set_cell_data(row,3,value = locale.format_string('%0.2f',tripTime))
+            penaltyTime = locale.atof(app.inputSheet.get_cell_data(row,4))
+            finalTime = tripTime + penaltyTime
+            app.inputSheet.set_cell_data(row,5,value = locale.format_string('%0.2f',finalTime))
+            
             mqtt_client.publish("elzwelle/stopwatch/finish/number/akn",
                                 payload='{:} {:} {:}'.format(time,stamp,number), 
                                 qos=1)
@@ -363,7 +379,6 @@ def on_message(client, userdata, msg):
 # Main program
 #-------------------------------------------------------------------
 if __name__ == '__main__':    
-    GPIO = None
    
     myPlatform = platform.system()
     print("OS in my system : ", myPlatform)
@@ -392,6 +407,8 @@ if __name__ == '__main__':
     if myPlatform == 'Linux':
         config.read('linux.ini')
 
+    locale.setlocale(locale.LC_ALL, 'de_DE')
+    
     # google_client = gspread.service_account(filename=config.get('google','client_secret_json'))
     #
     # # Open a sheet from a spreadsheet in one go
