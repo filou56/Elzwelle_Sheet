@@ -30,6 +30,9 @@ class sheetapp_tk(tkinter.Tk):
         self.parent = parent
         self.initialize()
 
+    def noop(self):
+        return
+
     def initialize(self):
         noteStyle = ttk.Style()
         noteStyle.theme_use('default')
@@ -92,21 +95,40 @@ class sheetapp_tk(tkinter.Tk):
         self.inputTab.grid_columnconfigure(0, weight = 1)
         self.inputTab.grid_rowconfigure(0, weight = 1)
         self.inputSheet = Sheet(self.inputTab,
-                           data = [[f"{r+1}",'0,00','0,00','0,00','0,00']+
+                           data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
                                   [f"0" for c in range(25)] for r in range(200)],
-                           header = ['Startnummer','ZS Start','ZS Ziel','Zeit','Wertung']+
+                           header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                     [f"{c+1}" for c in range(25)])
         self.inputSheet.enable_bindings()
         self.inputSheet.grid(column = 0, row = 0)
         self.inputSheet.grid(row = 0, column = 0, sticky = "nswe")
         for i in range(25):
-            self.inputSheet.column_width(i+5, 40, False, True) 
+            self.inputSheet.column_width(i+6, 40, False, True) 
         
         inputSpan = self.inputSheet[:]
         inputSpan.align('right')
         
+        self.inputSheet.disable_bindings("All")
+        self.inputSheet.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
+        
+        self.inputSheet.popup_menu_add_command(
+            "Copy to GOOGLE Sheet",
+            None,
+            # index_menu=False,
+            header_menu=False,
+            empty_space_menu=False,
+        )
+        
         self.resizable(True,True)
         
+    def penaltySum(self,row):
+        sumSeconds = 0
+        rowData = self.inputSheet[row].data
+        print(rowData[6::])
+        for penalty in rowData[6::]:
+            sumSeconds = sumSeconds + int(penalty)
+        return sumSeconds   
+    
     def refresh(self):
         gc.collect()
         self.after(500, self.refresh)
@@ -205,7 +227,15 @@ def on_message(client, userdata, msg):
             app.courseSheet.insert_row(data)
             row = app.inputSheet.span("A").data.index(data[0].strip()) 
             col = int(data[1].strip())
-            app.inputSheet.set_cell_data(row,col+4,value = data[2])
+            app.inputSheet.set_cell_data(row,col+5,value = data[2])
+            if int(data[2]) == 50:
+                app.inputSheet[row,col+5].highlight(bg = "pink")
+            elif int(data[2]) == 2:
+                app.inputSheet[row,col+5].highlight(bg = "khaki")
+            
+            sumSeconds = app.penaltySum(row)    
+            print(sumSeconds)
+            app.inputSheet.set_cell_data(row,4,value = sumSeconds)
             
         except Exception as e:
             print("MQTT Decode exception: ",e,payload)
@@ -244,7 +274,10 @@ def on_message(client, userdata, msg):
             
             row = app.inputSheet.span("A").data.index(data[2].strip())
             print(row)
-            app.inputSheet.set_cell_data(row,2,value = data[1])
+            app.inputSheet.set_cell_data(row,1,value = data[1])
+            mqtt_client.publish("elzwelle/stopwatch/start/number/akn",
+                                payload='{:} {:} {:}'.format(time,stamp,number), 
+                                qos=1)
             
             # message = '{:} | {:>10} | {:>2}'.format(time,stamp,number)
             # cell = wks_start.find(stamp)
@@ -276,7 +309,10 @@ def on_message(client, userdata, msg):
                 
             row = app.inputSheet.span("A").data.index(data[2].strip())
             print(row)
-            app.inputSheet.set_cell_data(row,3,value = data[1])
+            app.inputSheet.set_cell_data(row,2,value = data[1])
+            mqtt_client.publish("elzwelle/stopwatch/finish/number/akn",
+                                payload='{:} {:} {:}'.format(time,stamp,number), 
+                                qos=1)
             
             # message = '{:} | {:>10} | {:>2}'.format(time,stamp,number)
             # cell = wks_finish.find(stamp)
