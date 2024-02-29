@@ -8,7 +8,7 @@ import tkinter
 from   tkinter import ttk
 import uuid
 #import socket
-#import gspread
+import gspread
 import paho.mqtt.client as paho
 from paho import mqtt
 #from table import TableCanvas
@@ -106,7 +106,8 @@ class sheetapp_tk(tkinter.Tk):
         self.inputTab.grid_rowconfigure(0, weight = 1)
         self.inputSheet = Sheet(self.inputTab,
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-                                  [f"0" for c in range(25)] for r in range(200)],
+        #                         [f"0" for c in range(25)] for r in range(200)],
+                                  (["0"]*25) for r in range(200)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                     [f"{c+1}" for c in range(25)])
         self.inputSheet.enable_bindings()
@@ -121,14 +122,14 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet.disable_bindings("All")
         self.inputSheet.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
         
-        self.inputSheet.popup_menu_add_command(
-            "Copy to GOOGLE Sheet",
-            None,
-            table_menu=False,
-            header_menu=False,
-            empty_space_menu=False,
-        )
-        
+        # self.inputSheet.popup_menu_add_command(
+        #     "Copy to GOOGLE Sheet",
+        #     None,
+        #     table_menu=False,
+        #     header_menu=False,
+        #     empty_space_menu=False,
+        # )
+            
         self.resizable(True,True)
         
     def penaltySum(self,row):
@@ -228,7 +229,7 @@ def on_message(client, userdata, msg):
     """
     print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
     
-    payload = msg.payload.decode('utf-8')
+    payload = msg.payload.decode('ISO8859-1')        # ('utf-8')
     
     if msg.topic == 'elzwelle/stopwatch/course/data':
         try:
@@ -375,9 +376,31 @@ def on_message(client, userdata, msg):
 #         except Exception as e:
 #             print("MQTT Decode exception: ",e,payload)
 
+def copyToGoogleSheet():
+    print("Copy to GOOGLE Sheet")
+    # Index asugewälte Zeile
+    currently_selected = app.inputSheet.get_currently_selected()
+    print(currently_selected.row)
+    
+    data = app.inputSheet[currently_selected].data[0]
+    print(data)
+    
+    # Startnummer Spalte aus Google holen
+    startNums = wks_input.col_values(4)
+    print(startNums)
+    
+    # Startnummer Position suchen
+    row = startNums.index(data[0])+1
+    print(row)
+    
+    # Zeile aus Google holen
+    print(wks_input.row_values(row))
+    
+
 #-------------------------------------------------------------------
 # Main program
 #-------------------------------------------------------------------
+
 if __name__ == '__main__':    
    
     myPlatform = platform.system()
@@ -409,7 +432,10 @@ if __name__ == '__main__':
 
     locale.setlocale(locale.LC_ALL, 'de_DE')
     
-    # google_client = gspread.service_account(filename=config.get('google','client_secret_json'))
+    google_client = gspread.service_account(filename=config.get('google','client_secret_json'))
+    # Open a sheet from a spreadsheet in one go
+    wks_input = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(0)
+
     #
     # # Open a sheet from a spreadsheet in one go
     # wks_start = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(0)
@@ -420,6 +446,7 @@ if __name__ == '__main__':
     # using MQTT version 5 here, for 3.1.1: MQTTv311, 3.1: MQTTv31
     # userdata is user defined data of any type, updated by user_data_set()
     # client_id is the given name of the client
+    
     mqtt_client = paho.Client(client_id="elzwelle_"+str(uuid.uuid4()), userdata=None, protocol=paho.MQTTv311)
 
     # enable TLS for secure connection
@@ -443,6 +470,17 @@ if __name__ == '__main__':
     app = sheetapp_tk(None)
     app.title("MQTT Tabelle Elz-Zeit")
     app.refresh()
+    
+        
+    app.inputSheet.popup_menu_add_command(
+        "Copy to GOOGLE Sheet",
+        copyToGoogleSheet,
+        table_menu=False,
+        header_menu=False,
+        empty_space_menu=False,
+    )
+    
+    # run
     app.mainloop()
     print(time.asctime(), "GUI done")
           
