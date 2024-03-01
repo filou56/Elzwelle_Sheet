@@ -461,32 +461,41 @@ def copyToGoogleSheet():
         print(row)
         
         # Zeile aus Google holen
-        googleData = wks_input.row_values(row)
-        print(googleData)
+        gData = wks_input.row_values(row)
+        print(gData)
         
         if tab == 4:
             print("Lauf 1")
             gTzStartIdx     = tksheet.alpha2num("M")-1
             gTzFinishIdx    = tksheet.alpha2num("N")-1
             gTor_1_Idx      = tksheet.alpha2num("O")-1
-            gPenaltySec     = tksheet.alpha2num("AO")-1
-            gTripTime       = tksheet.alpha2num("AP")-1
-            gTime           = tksheet.alpha2num("AQ")-1
+            #gPenaltySec     = tksheet.alpha2num("AO")-1
+            #gTripTime       = tksheet.alpha2num("AP")-1
+            #gTime           = tksheet.alpha2num("AQ")-1
+            gRange          = "M"+str(row)+":"+"AN"+str(row)
         if tab == 5:
             print("Lauf 2")
             gTzStartIdx     = tksheet.alpha2num("AR")-1
             gTzFinishIdx    = tksheet.alpha2num("AS")-1
             gTor_1_Idx      = tksheet.alpha2num("AT")-1
-            gPenaltySec     = tksheet.alpha2num("BT")-1
-            gTripTime       = tksheet.alpha2num("BU")-1
-            gTime           = tksheet.alpha2num("BV")-1
+            #gPenaltySec     = tksheet.alpha2num("BT")-1
+            #gTripTime       = tksheet.alpha2num("BU")-1
+            #gTime           = tksheet.alpha2num("BV")-1
+            gRange          = "AR"+str(row)+":"+"BS"+str(row)
         
-        print(googleData[gTzStartIdx])      # << col 1
-        print(googleData[gTzFinishIdx])     # << col 2
-        print(googleData[gTor_1_Idx])       # << col 6..
-        print(googleData[gPenaltySec])      # << col 4
-        print(googleData[gTripTime])        # << col 3
-        print(googleData[gTime])            # << col 5
+        print(gData[gTzStartIdx])      # << col 1
+        print(gData[gTzFinishIdx])     # << col 2
+        print(gData[gTor_1_Idx])       # << col 6..
+        #print(googleData[gPenaltySec])      # << col 4
+        #print(googleData[gTripTime])        # << col 3
+        #print(googleData[gTime])            # << col 5  
+        print(gRange)
+        gData[gTzStartIdx]  = data[1]
+        gData[gTzFinishIdx] = data[2]
+        gData[gTor_1_Idx:gTor_1_Idx+26] = data[6:31]
+        print([gData[gTzStartIdx:gTor_1_Idx+25]])
+        wks_input.update([gData[gTzStartIdx:gTor_1_Idx+25]],gRange,
+                          value_input_option='USER_ENTERED')
         
     else:
         tkinter.messagebox.showerror(title="Fehler", message="Falscher Wettbewerb aktiv!")
