@@ -30,9 +30,33 @@ class sheetapp_tk(tkinter.Tk):
         tkinter.Tk.__init__(self,parent)
         self.parent = parent
         self.initialize()
+        self.run   = 0
 
     def noop(self):
         return
+
+    def setRun(self,run):
+        
+        self.run = run
+        print(run)
+        if run == 1:
+            self.training.set(True)
+            self.run_1.set(False)
+            self.run_2.set(False)
+            self.inputSheet = self.inputSheet_T
+        elif run == 2:
+            self.training.set(False)
+            self.run_1.set(True)
+            self.run_2.set(False)
+            self.inputSheet = self.inputSheet_1
+        elif run == 3:
+            self.training.set(False)
+            self.run_1.set(False)
+            self.run_2.set(True)
+            self.inputSheet = self.inputSheet_2
+        else:
+            self.run = 0
+        self.runText.set(self.headerText[self.run])
 
     def initialize(self):
         noteStyle = ttk.Style()
@@ -42,18 +66,46 @@ class sheetapp_tk(tkinter.Tk):
         noteStyle.map("TNotebook.Tab", background=[("selected", '#005fd7')],foreground=[("selected", 'white')])
         
         self.geometry("1000x400")
+        
+        self.run = 1
+        self.headerText = ['','Training','Lauf 1','Lauf 2']
+        self.runText = tkinter.StringVar('')
+        
+        self.training   = tkinter.BooleanVar(False)
+        self.run_1      = tkinter.BooleanVar(False)
+        self.run_2      = tkinter.BooleanVar(False)
+        
+        self.menuBar = tkinter.Menu(self)
+        self.config(menu = self.menuBar)
+        self.menuCompetition = tkinter.Menu(self.menuBar, tearoff=False) 
+        
+        self.menuCompetition.add_checkbutton(command=lambda: self.setRun(1),label="Training",variable=self.training,onvalue=1, offvalue=0)
+        self.menuCompetition.add_checkbutton(command=lambda: self.setRun(2),label="Lauf 1",variable=self.run_1,onvalue=1, offvalue=0)
+        self.menuCompetition.add_checkbutton(command=lambda: self.setRun(3),label="Lauf 2",variable=self.run_2,onvalue=1, offvalue=0)
+        
+        self.menuBar.add_cascade(label="Wettbewerb",menu=self.menuCompetition)
+        
+        self.pageHeader = tkinter.Label(self,textvariable=self.runText,
+                                        font=("Arial", 18),
+                                        bg='#D3E3FD')
+        self.pageHeader.pack(expand = 1, fill ="both") 
+        
         self.tabControl = ttk.Notebook(self) 
         self.tabControl
           
-        self.startTab = ttk.Frame(self.tabControl) 
-        self.finishTab = ttk.Frame(self.tabControl)
-        self.courseTab = ttk.Frame(self.tabControl)
-        self.inputTab = ttk.Frame(self.tabControl) 
+        self.startTab   = ttk.Frame(self.tabControl) 
+        self.finishTab  = ttk.Frame(self.tabControl)
+        self.courseTab  = ttk.Frame(self.tabControl)
+        self.inputTab_T = ttk.Frame(self.tabControl) 
+        self.inputTab_1 = ttk.Frame(self.tabControl) 
+        self.inputTab_2 = ttk.Frame(self.tabControl)
         
         self.tabControl.add(self.startTab, text ='Start') 
         self.tabControl.add(self.finishTab, text ='Ziel') 
         self.tabControl.add(self.courseTab, text ='Strecke') 
-        self.tabControl.add(self.inputTab, text ='Eingabe') 
+        self.tabControl.add(self.inputTab_T, text ='Training')
+        self.tabControl.add(self.inputTab_1, text ='Lauf 1') 
+        self.tabControl.add(self.inputTab_2, text ='Lauf 2')
         self.tabControl.pack(expand = 1, fill ="both") 
          
         #----- Start Page -------
@@ -100,36 +152,74 @@ class sheetapp_tk(tkinter.Tk):
         self.courseSheet.disable_bindings("All")
         self.courseSheet.enable_bindings("edit_cell","single_select")
         
-        #----- Input Page -------
+        #----- Input Page Training -------
         
-        self.inputTab.grid_columnconfigure(0, weight = 1)
-        self.inputTab.grid_rowconfigure(0, weight = 1)
-        self.inputSheet = Sheet(self.inputTab,
+        self.inputTab_T.grid_columnconfigure(0, weight = 1)
+        self.inputTab_T.grid_rowconfigure(0, weight = 1)
+        self.inputSheet_T = Sheet(self.inputTab_T,
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
         #                         [f"0" for c in range(25)] for r in range(200)],
                                   (["0"]*25) for r in range(200)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                     [f"{c+1}" for c in range(25)])
-        self.inputSheet.enable_bindings()
-        self.inputSheet.grid(column = 0, row = 0)
-        self.inputSheet.grid(row = 0, column = 0, sticky = "nswe")
+        self.inputSheet_T.enable_bindings()
+        self.inputSheet_T.grid(column = 0, row = 0)
+        self.inputSheet_T.grid(row = 0, column = 0, sticky = "nswe")
         for i in range(25):
-            self.inputSheet.column_width(i+6, 40, False, True) 
+            self.inputSheet_T.column_width(i+6, 40, False, True) 
         
-        inputSpan = self.inputSheet[:]
+        inputSpan = self.inputSheet_T[:]
         inputSpan.align('right')
         
-        self.inputSheet.disable_bindings("All")
-        self.inputSheet.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
+        self.inputSheet_T.disable_bindings("All")
+        self.inputSheet_T.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
         
-        # self.inputSheet.popup_menu_add_command(
-        #     "Copy to GOOGLE Sheet",
-        #     None,
-        #     table_menu=False,
-        #     header_menu=False,
-        #     empty_space_menu=False,
-        # )
-            
+        #----- Input Page 1-------
+        
+        self.inputTab_1.grid_columnconfigure(0, weight = 1)
+        self.inputTab_1.grid_rowconfigure(0, weight = 1)
+        self.inputSheet_1 = Sheet(self.inputTab_1,
+                           data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
+        #                         [f"0" for c in range(25)] for r in range(200)],
+                                  (["0"]*25) for r in range(200)],
+                           header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
+                                    [f"{c+1}" for c in range(25)])
+        self.inputSheet_1.enable_bindings()
+        self.inputSheet_1.grid(column = 0, row = 0)
+        self.inputSheet_1.grid(row = 0, column = 0, sticky = "nswe")
+        for i in range(25):
+            self.inputSheet_1.column_width(i+6, 40, False, True) 
+        
+        inputSpan = self.inputSheet_1[:]
+        inputSpan.align('right')
+        
+        self.inputSheet_1.disable_bindings("All")
+        self.inputSheet_1.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
+        
+        #----- Input Page 2-------
+        
+        self.inputTab_2.grid_columnconfigure(0, weight = 1)
+        self.inputTab_2.grid_rowconfigure(0, weight = 1)
+        self.inputSheet_2 = Sheet(self.inputTab_2,
+                           data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
+        #                         [f"0" for c in range(25)] for r in range(200)],
+                                  (["0"]*25) for r in range(200)],
+                           header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
+                                    [f"{c+1}" for c in range(25)])
+        self.inputSheet_2.enable_bindings()
+        self.inputSheet_2.grid(column = 0, row = 0)
+        self.inputSheet_2.grid(row = 0, column = 0, sticky = "nswe")
+        for i in range(25):
+            self.inputSheet_2.column_width(i+6, 40, False, True) 
+        
+        inputSpan = self.inputSheet_2[:]
+        inputSpan.align('right')
+        
+        self.inputSheet_2.disable_bindings("All")
+        self.inputSheet_2.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
+        
+        self.inputSheet = self.inputSheet_T
+        
         self.resizable(True,True)
         
     def penaltySum(self,row):
@@ -270,111 +360,79 @@ def on_message(client, userdata, msg):
         except:
             print("MQTT Decode exception: ",msg.payload)
             
-    if msg.topic == 'elzwelle/stopwatch/start/number':       
+    if msg.topic == 'elzwelle/stopwatch/start/number':
+        time   = '00:00:00'
+        stamp  = '0,00'
+        number = '0'       
         try:
             data   = payload.split(' ')
             time   = data[0].strip()
             stamp  = data[1].strip()
             number = data[2].strip()
-            row    = app.startSheet.span("B").data.index(stamp)+1
-            app.startSheet.span("C{:}".format(row)).data = number
-            if len(data) > 3:
-                app.startSheet.span("D{:}".format(row)).data = data[3].strip()
-            
-            row = app.inputSheet.span("A").data.index(data[2].strip())
-            print(row)
-            app.inputSheet.set_cell_data(row,1,value = data[1])
-            mqtt_client.publish("elzwelle/stopwatch/start/number/akn",
-                                payload='{:} {:} {:}'.format(time,stamp,number), 
-                                qos=1)
-            
-            # message = '{:} | {:>10} | {:>2}'.format(time,stamp,number)
-            # cell = wks_start.find(stamp)
-            # if cell != None:
-            #     print("ROW: ",cell.row)     
-            #     wks_start.update_cell(cell.row,3,number)
-                # start_update_number(stamp, number)
-            #     mqtt_client.publish("elzwelle/stopwatch/start/number/akn", 
-            #                 payload='{:} {:} {:}'.format(time,stamp,number), 
-            #                 qos=1)
-            # else:
-            #     print("Stamp not found: ",payload)
-            #     mqtt_client.publish("elzwelle/stopwatch/start/number/error", 
-            #                 payload='{:} {:} {:}'.format(time,stamp,number), 
-            #                 qos=1)
-        except Exception as e:
-            print("MQTT Decode exception: ",e,payload)
-    
-    if msg.topic == 'elzwelle/stopwatch/finish/number':       
-        try:
-            data   = payload.split(' ')
-            time   = data[0].strip()
-            stamp  = data[1].strip()
-            number = data[2].strip()
-            row    = app.finishSheet.span("B").data.index(stamp)+1
-            app.finishSheet.span("C{:}".format(row)).data = number
-            if len(data) > 3:
-                app.finishSheet.span("D{:}".format(row)).data = data[3].strip()
+            if int(number) > 0:
+                row    = app.startSheet.span("B").data.index(stamp)+1
+                app.startSheet.span("C{:}".format(row)).data = number
+                if len(data) > 3:
+                    app.startSheet.span("D{:}".format(row)).data = data[3].strip()
                 
-            row = app.inputSheet.span("A").data.index(data[2].strip())
-            #print(row)
-            app.inputSheet.set_cell_data(row,2,value = data[1])
-            tsStart  = locale.atof(app.inputSheet.get_cell_data(row,1))
-            tsFinish = locale.atof(app.inputSheet.get_cell_data(row,2))
-            tripTime = tsFinish - tsStart
-            app.inputSheet.set_cell_data(row,3,value = locale.format_string('%0.2f',tripTime))
-            penaltyTime = locale.atof(app.inputSheet.get_cell_data(row,4))
-            finalTime = tripTime + penaltyTime
-            app.inputSheet.set_cell_data(row,5,value = locale.format_string('%0.2f',finalTime))
+                row = app.inputSheet.span("A").data.index(data[2].strip())
+                print(row)
+                app.inputSheet.set_cell_data(row,1,value = data[1])
+                mqtt_client.publish("elzwelle/stopwatch/start/number/akn",
+                                    payload='{:} {:} {:}'.format(time,stamp,number), 
+                                    qos=1)
+            else:
+                mqtt_client.publish("elzwelle/stopwatch/start/number/error", 
+                                    payload='{:} {:} {:}'.format(time,stamp,number), 
+                                    qos=1)
             
-            mqtt_client.publish("elzwelle/stopwatch/finish/number/akn",
-                                payload='{:} {:} {:}'.format(time,stamp,number), 
-                                qos=1)
-            
-            # message = '{:} | {:>10} | {:>2}'.format(time,stamp,number)
-            # cell = wks_finish.find(stamp)
-            # if cell != None:
-            #     print("ROW: ",cell.row)     
-            #     wks_finish.update_cell(cell.row,3,number)    
-            #     # finish_update_number(stamp, number)
-            #     mqtt_client.publish("elzwelle/stopwatch/finish/number/akn", 
-            #                 payload='{:} {:} {:}'.format(time,stamp,number), 
-            #                 qos=1)
-            # else:
-            #     print("Stamp not found: ",payload)
-            #     mqtt_client.publish("elzwelle/stopwatch/finish/number/error", 
-            #                 payload='{:} {:} {:}'.format(time,stamp,number), 
-            #                 qos=1)
         except Exception as e:
             print("MQTT Decode exception: ",e,payload)
+            print(e.args[0])
+            mqtt_client.publish("elzwelle/stopwatch/start/number/error", 
+                                payload='{:} {:} {:}'.format(time,stamp,number), 
+                                qos=1)
     
-#     if msg.topic == 'elzwelle/stopwatch/start/get':       
-#         try:
-#             data = payload.split(' ')
-#             message = '{:} | {:10.2f} | {:>2}'.format(data[0].strip(),
-#                                                     float(data[1]),
-#                                                     data[2].strip())
-# #            cell = wks_start.find(data[2].strip())
-#             # if cell != None:
-#             #     print("ROW: ",cell.row,"COL: ",cell.col)     
-#             # else:
-#             #     print("Entry not found: ",payload)
-#         except Exception as e:
-#             print("MQTT Decode exception: ",e,payload)
-#
-#     if msg.topic == 'elzwelle/stopwatch/finish/get':       
-#         try:
-#             data = payload.split(' ')
-#             message = '{:} | {:10.2f} | {:>2}'.format(data[0].strip(),
-#                                                     float(data[1]),
-#                                                     data[2].strip())
-# #            cell = wks_finish.find(data[2].strip())
-#             # if cell != None:
-#             #     print("ROW: ",cell.row,"COL: ",cell.col)     
-#             # else:
-#             #     print("Entry not found: ",payload)
-#         except Exception as e:
-#             print("MQTT Decode exception: ",e,payload)
+    if msg.topic == 'elzwelle/stopwatch/finish/number':   
+        time   = '00:00:00'
+        stamp  = '0,00'
+        number = '0'       
+        try:
+            data   = payload.split(' ')
+            time   = data[0].strip()
+            stamp  = data[1].strip()
+            number = data[2].strip()
+            if int(number) > 0:
+                row    = app.finishSheet.span("B").data.index(stamp)+1
+                app.finishSheet.span("C{:}".format(row)).data = number
+                if len(data) > 3:
+                    app.finishSheet.span("D{:}".format(row)).data = data[3].strip()
+                    
+                row = app.inputSheet.span("A").data.index(data[2].strip())
+                #print(row)
+                app.inputSheet.set_cell_data(row,2,value = data[1])
+                tsStart  = locale.atof(app.inputSheet.get_cell_data(row,1))
+                tsFinish = locale.atof(app.inputSheet.get_cell_data(row,2))
+                tripTime = tsFinish - tsStart
+                app.inputSheet.set_cell_data(row,3,value = locale.format_string('%0.2f',tripTime))
+                penaltyTime = locale.atof(app.inputSheet.get_cell_data(row,4))
+                finalTime = tripTime + penaltyTime
+                app.inputSheet.set_cell_data(row,5,value = locale.format_string('%0.2f',finalTime))
+                
+                mqtt_client.publish("elzwelle/stopwatch/finish/number/akn",
+                                    payload='{:} {:} {:}'.format(time,stamp,number), 
+                                    qos=1)
+            else:
+                mqtt_client.publish("elzwelle/stopwatch/start/number/error", 
+                                    payload='{:} {:} {:}'.format(time,stamp,number), 
+                                    qos=1)
+    
+        except Exception as e:
+            print("MQTT Decode exception: ",e,payload)
+            print(e.args[0])
+            mqtt_client.publish("elzwelle/stopwatch/start/number/error", 
+                                payload='{:} {:} {:}'.format(time,stamp,number), 
+                                qos=1)
 
 def copyToGoogleSheet():
     print("Copy to GOOGLE Sheet")
