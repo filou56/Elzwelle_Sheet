@@ -6,14 +6,17 @@ import time
 import locale
 import tkinter
 from   tkinter import ttk
+from   tkinter import messagebox
+
 import uuid
 #import socket
 import gspread
 import paho.mqtt.client as paho
-from paho import mqtt
+from   paho import mqtt
 #from table import TableCanvas
-from tksheet import Sheet
-from bCNC.lib.log import null
+import tksheet
+from   tksheet import Sheet
+from   bCNC.lib.log import null
 
 # Google Spreadsheet ID for publishing times
 # Elzwelle        SPREADSHEET_ID = '1obtfHymwPSGoGoROUialryeGiMJ1vkEUWL_Gze_hyfk'
@@ -88,7 +91,7 @@ class sheetapp_tk(tkinter.Tk):
         self.pageHeader = tkinter.Label(self,textvariable=self.runText,
                                         font=("Arial", 18),
                                         bg='#D3E3FD')
-        self.pageHeader.pack(expand = 1, fill ="both") 
+        self.pageHeader.pack(expand = 0, fill ="x") 
         
         self.tabControl = ttk.Notebook(self) 
         self.tabControl
@@ -159,14 +162,15 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_T = Sheet(self.inputTab_T,
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
         #                         [f"0" for c in range(25)] for r in range(200)],
-                                  (["0"]*25) for r in range(200)],
+                                  (["0"]*26) for r in range(200)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
-                                    [f"{c+1}" for c in range(25)])
+                                    [f"{c+1}" for c in range(25)]+["Ziel"])
         self.inputSheet_T.enable_bindings()
         self.inputSheet_T.grid(column = 0, row = 0)
         self.inputSheet_T.grid(row = 0, column = 0, sticky = "nswe")
         for i in range(25):
             self.inputSheet_T.column_width(i+6, 40, False, True) 
+        self.inputSheet_T.column_width(31, 50, False, True)
         
         inputSpan = self.inputSheet_T[:]
         inputSpan.align('right')
@@ -181,14 +185,15 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_1 = Sheet(self.inputTab_1,
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
         #                         [f"0" for c in range(25)] for r in range(200)],
-                                  (["0"]*25) for r in range(200)],
+                                  (["0"]*26) for r in range(200)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
-                                    [f"{c+1}" for c in range(25)])
+                                    [f"{c+1}" for c in range(25)]+["Ziel"])
         self.inputSheet_1.enable_bindings()
         self.inputSheet_1.grid(column = 0, row = 0)
         self.inputSheet_1.grid(row = 0, column = 0, sticky = "nswe")
         for i in range(25):
-            self.inputSheet_1.column_width(i+6, 40, False, True) 
+            self.inputSheet_1.column_width(i+6, 40, False, True)
+        self.inputSheet_1.column_width(31, 50, False, True) 
         
         inputSpan = self.inputSheet_1[:]
         inputSpan.align('right')
@@ -203,14 +208,15 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_2 = Sheet(self.inputTab_2,
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
         #                         [f"0" for c in range(25)] for r in range(200)],
-                                  (["0"]*25) for r in range(200)],
+                                  (["0"]*26) for r in range(200)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
-                                    [f"{c+1}" for c in range(25)])
+                                    [f"{c+1}" for c in range(25)]+["Ziel"])
         self.inputSheet_2.enable_bindings()
         self.inputSheet_2.grid(column = 0, row = 0)
         self.inputSheet_2.grid(row = 0, column = 0, sticky = "nswe")
         for i in range(25):
             self.inputSheet_2.column_width(i+6, 40, False, True) 
+        self.inputSheet_2.column_width(31, 50, False, True)
         
         inputSpan = self.inputSheet_2[:]
         inputSpan.align('right')
@@ -436,24 +442,60 @@ def on_message(client, userdata, msg):
 
 def copyToGoogleSheet():
     print("Copy to GOOGLE Sheet")
-    # Index asugewälte Zeile
-    currently_selected = app.inputSheet.get_currently_selected()
-    print(currently_selected.row)
+    tab = app.tabControl.index(app.tabControl.select())
     
-    data = app.inputSheet[currently_selected].data[0]
-    print(data)
-    
-    # Startnummer Spalte aus Google holen
-    startNums = wks_input.col_values(4)
-    print(startNums)
-    
-    # Startnummer Position suchen
-    row = startNums.index(data[0])+1
-    print(row)
-    
-    # Zeile aus Google holen
-    print(wks_input.row_values(row))
-    
+    if (app.inputSheet == app.inputSheet_1 and tab == 4) or (app.inputSheet == app.inputSheet_2 and tab == 5):
+        # Index asugewälte Zeile
+        currently_selected = app.inputSheet.get_currently_selected()
+        print(currently_selected.row)
+        
+        data = app.inputSheet[currently_selected].data[0]
+        print(data)
+        
+        # Startnummer Spalte aus Google holen
+        startNums = wks_input.col_values(4)
+        print(startNums)
+        
+        # Startnummer Position suchen
+        row = startNums.index(data[0])+1
+        print(row)
+        
+        # Zeile aus Google holen
+        googleData = wks_input.row_values(row)
+        print(googleData)
+        
+        if tab == 4:
+            print("Lauf 1")
+            gTzStartIdx     = tksheet.alpha2num("M")-1
+            gTzFinishIdx    = tksheet.alpha2num("N")-1
+            gTor_1_Idx      = tksheet.alpha2num("O")-1
+            gPenaltySec     = tksheet.alpha2num("AO")-1
+            gTripTime       = tksheet.alpha2num("AP")-1
+            gTime           = tksheet.alpha2num("AQ")-1
+        if tab == 5:
+            print("Lauf 2")
+            gTzStartIdx     = tksheet.alpha2num("AR")-1
+            gTzFinishIdx    = tksheet.alpha2num("AS")-1
+            gTor_1_Idx      = tksheet.alpha2num("AT")-1
+            gPenaltySec     = tksheet.alpha2num("BT")-1
+            gTripTime       = tksheet.alpha2num("BU")-1
+            gTime           = tksheet.alpha2num("BV")-1
+        
+        print(googleData[gTzStartIdx])      # << col 1
+        print(googleData[gTzFinishIdx])     # << col 2
+        print(googleData[gTor_1_Idx])       # << col 6..
+        print(googleData[gPenaltySec])      # << col 4
+        print(googleData[gTripTime])        # << col 3
+        print(googleData[gTime])            # << col 5
+        
+    else:
+        tkinter.messagebox.showerror(title="Fehler", message="Falscher Wettbewerb aktiv!")
+# def copyToGoogleSheet_1():
+#     copyToGoogleSheet(1) 
+#
+# def copyToGoogleSheet_2():
+#     copyToGoogleSheet(2)
+#
 
 #-------------------------------------------------------------------
 # Main program
@@ -529,9 +571,16 @@ if __name__ == '__main__':
     app.title("MQTT Tabelle Elz-Zeit")
     app.refresh()
     
-        
-    app.inputSheet.popup_menu_add_command(
-        "Copy to GOOGLE Sheet",
+    app.inputSheet_1.popup_menu_add_command(
+        "Copy to GOOGLE Sheet 1. Lauf",
+        copyToGoogleSheet,
+        table_menu=False,
+        header_menu=False,
+        empty_space_menu=False,
+    )
+    
+    app.inputSheet_2.popup_menu_add_command(
+        "Copy to GOOGLE Sheet 2. Lauf",
         copyToGoogleSheet,
         table_menu=False,
         header_menu=False,
