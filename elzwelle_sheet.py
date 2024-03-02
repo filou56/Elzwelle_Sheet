@@ -3,10 +3,11 @@ import gc
 import os
 import platform
 import time
-import locale
+#import locale
 import tkinter
 from   tkinter import ttk
 from   tkinter import messagebox
+import traceback
 
 import uuid
 #import socket
@@ -25,6 +26,17 @@ SPREADSHEET_ID = '1M05W0igR6stS4UBPfbe7-MFx0qoe5w6ktWAcLVCDZTE'
 
 startSheet = null
 
+#---------------------- Fix local.DE -------------------
+class locale:
+    
+    @staticmethod
+    def atof(s):
+        return float(s.strip().replace(',','.'))
+
+    @staticmethod
+    def format_string(fmt, *args):
+        return  (fmt % args).replace('.',',')
+    
 #-------------------------------------------------------------------
 # Define the GUI
 #-------------------------------------------------------------------
@@ -34,6 +46,13 @@ class sheetapp_tk(tkinter.Tk):
         self.parent = parent
         self.initialize()
         self.run   = 0
+
+    def showError(self, *args):
+        err = traceback.format_exception(*args)
+        messagebox.showerror('Exception',err)
+        
+        # but this works too
+        tkinter.Tk.report_callback_exception = self.showError
 
     def noop(self):
         return
@@ -62,6 +81,7 @@ class sheetapp_tk(tkinter.Tk):
         self.runText.set(self.headerText[self.run])
 
     def initialize(self):
+        rows = config.getint('competition','rows')
         noteStyle = ttk.Style()
         noteStyle.theme_use('default')
         noteStyle.configure("TNotebook", background='lightgray')
@@ -162,7 +182,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_T = Sheet(self.inputTab_T,
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
         #                         [f"0" for c in range(25)] for r in range(200)],
-                                  (["0"]*26) for r in range(200)],
+                                  (["0"]*26) for r in range(rows)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                     [f"{c+1}" for c in range(25)]+["Ziel"])
         self.inputSheet_T.enable_bindings()
@@ -185,7 +205,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_1 = Sheet(self.inputTab_1,
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
         #                         [f"0" for c in range(25)] for r in range(200)],
-                                  (["0"]*26) for r in range(200)],
+                                  (["0"]*26) for r in range(rows)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                     [f"{c+1}" for c in range(25)]+["Ziel"])
         self.inputSheet_1.enable_bindings()
@@ -208,7 +228,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_2 = Sheet(self.inputTab_2,
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
         #                         [f"0" for c in range(25)] for r in range(200)],
-                                  (["0"]*26) for r in range(200)],
+                                  (["0"]*26) for r in range(rows)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                     [f"{c+1}" for c in range(25)]+["Ziel"])
         self.inputSheet_2.enable_bindings()
@@ -295,7 +315,7 @@ def on_publish(client, userdata, mid, properties=None):
         :param mid: variable returned from the corresponding publish() call, to allow outgoing messages to be tracked
         :param properties: can be used in MQTTv5, but is optional
     """
-    print("mid: " + str(mid))
+    print("Publish mid: " + str(mid))
 
 
 # print which topic was subscribed to
@@ -314,8 +334,8 @@ def on_subscribe(client, userdata, mid, granted_qos, properties=None):
 
 # print message, useful for checking if it was successful
 def on_message(client, userdata, msg):
-    global time_stamps_start_dirty 
-    global time_stamps_finish_dirty
+    # global time_stamps_start_dirty 
+    # global time_stamps_finish_dirty
     """
         Prints a mqtt message to stdout ( used as callback for subscribe )
 
@@ -429,7 +449,7 @@ def on_message(client, userdata, msg):
                                     payload='{:} {:} {:}'.format(time,stamp,number), 
                                     qos=1)
             else:
-                mqtt_client.publish("elzwelle/stopwatch/start/number/error", 
+                mqtt_client.publish("elzwelle/stopwatch/finish/number/error", 
                                     payload='{:} {:} {:}'.format(time,stamp,number), 
                                     qos=1)
     
@@ -440,71 +460,67 @@ def on_message(client, userdata, msg):
                                 payload='{:} {:} {:}'.format(time,stamp,number), 
                                 qos=1)
 
+GATE_CELLS        = 25
+GATE_CELLS_OFFSET = 6
+
 def copyToGoogleSheet():
     print("Copy to GOOGLE Sheet")
     tab = app.tabControl.index(app.tabControl.select())
+    gates = config.getint('competition','gates')
+    print("GAT: ",gates)
     
     if (app.inputSheet == app.inputSheet_1 and tab == 4) or (app.inputSheet == app.inputSheet_2 and tab == 5):
         # Index asugewälte Zeile
         currently_selected = app.inputSheet.get_currently_selected()
-        print(currently_selected.row)
+        print("SEL: ",currently_selected.row)
         
         data = app.inputSheet[currently_selected].data[0]
-        print(data)
+        print("TAB: ",data)
         
-        # Startnummer Spalte aus Google holen
-        startNums = wks_input.col_values(4)
-        print(startNums)
+        try:
+            # Startnummer Spalte aus Google holen
+            startNums = wks_input.col_values(4)
+            print("NUM: ",startNums)
+            
+            # Startnummer Position suchen
+            row = startNums.index(data[0])+1
+            print("ROW: ",row)
         
-        # Startnummer Position suchen
-        row = startNums.index(data[0])+1
-        print(row)
-        
-        # Zeile aus Google holen
-        gData = wks_input.row_values(row)
-        print(gData)
-        
-        if tab == 4:
-            print("Lauf 1")
-            gTzStartIdx     = tksheet.alpha2num("M")-1
-            gTzFinishIdx    = tksheet.alpha2num("N")-1
-            gTor_1_Idx      = tksheet.alpha2num("O")-1
-            #gPenaltySec     = tksheet.alpha2num("AO")-1
-            #gTripTime       = tksheet.alpha2num("AP")-1
-            #gTime           = tksheet.alpha2num("AQ")-1
-            gRange          = "M"+str(row)+":"+"AN"+str(row)
-        if tab == 5:
-            print("Lauf 2")
-            gTzStartIdx     = tksheet.alpha2num("AR")-1
-            gTzFinishIdx    = tksheet.alpha2num("AS")-1
-            gTor_1_Idx      = tksheet.alpha2num("AT")-1
-            #gPenaltySec     = tksheet.alpha2num("BT")-1
-            #gTripTime       = tksheet.alpha2num("BU")-1
-            #gTime           = tksheet.alpha2num("BV")-1
-            gRange          = "AR"+str(row)+":"+"BS"+str(row)
-        
-        print(gData[gTzStartIdx])      # << col 1
-        print(gData[gTzFinishIdx])     # << col 2
-        print(gData[gTor_1_Idx])       # << col 6..
-        #print(googleData[gPenaltySec])      # << col 4
-        #print(googleData[gTripTime])        # << col 3
-        #print(googleData[gTime])            # << col 5  
-        print(gRange)
-        gData[gTzStartIdx]  = data[1]
-        gData[gTzFinishIdx] = data[2]
-        gData[gTor_1_Idx:gTor_1_Idx+26] = data[6:31]
-        print([gData[gTzStartIdx:gTor_1_Idx+25]])
-        wks_input.update([gData[gTzStartIdx:gTor_1_Idx+25]],gRange,
-                          value_input_option='USER_ENTERED')
-        
+            # Zeile aus Google holen
+            gData = wks_input.row_values(row)
+            print("GOD: ",gData)
+            
+            if tab == 4:
+                print("COM: Lauf 1")
+                gTzStartIdx     = tksheet.alpha2num("M")-1
+                gTzFinishIdx    = tksheet.alpha2num("N")-1
+                gTor_1_Idx      = tksheet.alpha2num("O")-1
+                gRange          = "M"+str(row)+":"+"AN"+str(row)
+            if tab == 5:
+                print("COM: Lauf 2")
+                gTzStartIdx     = tksheet.alpha2num("AR")-1
+                gTzFinishIdx    = tksheet.alpha2num("AS")-1
+                gTor_1_Idx      = tksheet.alpha2num("AT")-1
+                gRange          = "AR"+str(row)+":"+"BS"+str(row)
+            
+            gData[gTzStartIdx]  = data[1]
+            gData[gTzFinishIdx] = data[2]
+            gData[gTor_1_Idx:gTor_1_Idx+gates] = data[GATE_CELLS_OFFSET : GATE_CELLS_OFFSET+gates]
+            gData[gTor_1_Idx+GATE_CELLS] = data[GATE_CELLS + GATE_CELLS_OFFSET] 
+            
+            print("UPD: ",[gData[gTzStartIdx:gTor_1_Idx+GATE_CELLS+1]])
+            
+            wks_input.update([gData[gTzStartIdx:gTor_1_Idx+GATE_CELLS+1]],gRange,
+                              value_input_option='USER_ENTERED')
+            
+            colSpan = "A"+str(currently_selected.row+1)+":F"+str(currently_selected.row+1)
+            app.inputSheet.span(colSpan).highlight(bg = "aquamarine")
+        except Exception as e:
+            colSpan = "A"+str(currently_selected.row+1)+":F"+str(currently_selected.row+1)
+            app.inputSheet.span(colSpan).highlight(bg = "pink")
+            messagebox.showerror(title="Fehler", message=e)
     else:
-        tkinter.messagebox.showerror(title="Fehler", message="Falscher Wettbewerb aktiv!")
-# def copyToGoogleSheet_1():
-#     copyToGoogleSheet(1) 
-#
-# def copyToGoogleSheet_2():
-#     copyToGoogleSheet(2)
-#
+        messagebox.showerror(title="Fehler", message="Falscher Wettbewerb aktiv!")
 
 #-------------------------------------------------------------------
 # Main program
@@ -532,6 +548,11 @@ if __name__ == '__main__':
         'password':'elzwelle', 
     }
     
+    config['competition']   = {
+        'gates':25,
+        'rows':300,
+    }
+        
     # Platform specific
     if myPlatform == 'Windows':
         # Platform defaults
@@ -539,43 +560,51 @@ if __name__ == '__main__':
     if myPlatform == 'Linux':
         config.read('linux.ini')
 
-    locale.setlocale(locale.LC_ALL, 'de_DE')
-    
-    google_client = gspread.service_account(filename=config.get('google','client_secret_json'))
-    # Open a sheet from a spreadsheet in one go
-    wks_input = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(0)
+    #locale.setlocale(locale.LC_ALL, 'de_DE')
+    try:
+        google_client = gspread.service_account(filename=config.get('google','client_secret_json'))
+        google_client.http_client.set_timeout(5)
+        # Open a sheet from a spreadsheet in one go
+        wks_input = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(0)
+        
+        # # Open a sheet from a spreadsheet in one go
+        # wks_start = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(0)
+        # #print("Ranges: ",gc.open("timestamp").list_protected_ranges(0))
+        # # Open a sheet from a spreadsheet in one go
+        # wks_finish = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(1)
+    except:
+        messagebox.showerror(title="Fehler", message="Keine Verbindung zu Google Sheets!")
+        exit(1)
 
-    #
-    # # Open a sheet from a spreadsheet in one go
-    # wks_start = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(0)
-    # #print("Ranges: ",gc.open("timestamp").list_protected_ranges(0))
-    # # Open a sheet from a spreadsheet in one go
-    # wks_finish = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(1)
+    #--------------------------------- MQTT --------------------------
 
     # using MQTT version 5 here, for 3.1.1: MQTTv311, 3.1: MQTTv31
     # userdata is user defined data of any type, updated by user_data_set()
     # client_id is the given name of the client
+    try:
+        mqtt_client = paho.Client(client_id="elzwelle_"+str(uuid.uuid4()), userdata=None, protocol=paho.MQTTv311)
     
-    mqtt_client = paho.Client(client_id="elzwelle_"+str(uuid.uuid4()), userdata=None, protocol=paho.MQTTv311)
-
-    # enable TLS for secure connection
-    if config.get('mqtt','tls_enabled'):
-        mqtt_client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-    # set username and password
-    mqtt_client.username_pw_set(config.get('mqtt','user'),
-                                config.get('mqtt','password'))
-    # connect to HiveMQ Cloud on port 8883 (default for MQTT)
-    mqtt_client.connect(config.get('mqtt','url'), config.getint('mqtt','port'))
-
-    # setting callbacks, use separate functions like above for better visibility
-    mqtt_client.on_connect      = on_connect
-    mqtt_client.on_subscribe    = on_subscribe
-    mqtt_client.on_message      = on_message
-    mqtt_client.on_publish      = on_publish
+        # enable TLS for secure connection
+        if config.get('mqtt','tls_enabled'):
+            mqtt_client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+        # set username and password
+        mqtt_client.username_pw_set(config.get('mqtt','user'),
+                                    config.get('mqtt','password'))
+        # connect to HiveMQ Cloud on port 8883 (default for MQTT)
+        mqtt_client.connect(config.get('mqtt','url'), config.getint('mqtt','port'))
     
-    mqtt_client.loop_start()
-       
-    # setup and start GUI
+        # setting callbacks, use separate functions like above for better visibility
+        mqtt_client.on_connect      = on_connect
+        mqtt_client.on_subscribe    = on_subscribe
+        mqtt_client.on_message      = on_message
+        mqtt_client.on_publish      = on_publish
+        
+        mqtt_client.loop_start()
+    except:
+        messagebox.showerror(title="Fehler", message="Keine Verbindung zum MQTT Server!")
+        exit(1)   
+        
+    # ---------- setup and start GUI --------------
     app = sheetapp_tk(None)
     app.title("MQTT Tabelle Elz-Zeit")
     app.refresh()
