@@ -243,8 +243,8 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_2.disable_bindings("All")
         self.inputSheet_2.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
         
-        self.inputSheet = self.inputSheet_T
-        
+        self.setRun(1)
+        self.tabControl.select(3)
         self.resizable(True,True)
         
     def penaltySum(self,row):
