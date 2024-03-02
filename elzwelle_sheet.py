@@ -58,9 +58,8 @@ class sheetapp_tk(tkinter.Tk):
         return
 
     def setRun(self,run):
-        
         self.run = run
-        print(run)
+        #print(run)
         if run == 1:
             self.training.set(True)
             self.run_1.set(False)
@@ -361,6 +360,10 @@ def on_message(client, userdata, msg):
             
             penaltyTime = app.penaltySum(row)    
             app.inputSheet.set_cell_data(row,4,value = locale.format_string('%0.2f', penaltyTime) )
+            
+            if locale.atof(app.inputSheet.get_cell_data(row,2)) > 0.0:  # TsFinish > 0
+                calculateTimes(row)
+        
             #print(sumSeconds,cellValue)
         except Exception as e:
             print("MQTT Decode exception: ",e,payload)
@@ -402,7 +405,7 @@ def on_message(client, userdata, msg):
                     app.startSheet.span("D{:}".format(row)).data = data[3].strip()
                 
                 row = app.inputSheet.span("A").data.index(data[2].strip())
-                print(row)
+                #print(row)
                 app.inputSheet.set_cell_data(row,1,value = data[1])
                 mqtt_client.publish("elzwelle/stopwatch/start/number/akn",
                                     payload='{:} {:} {:}'.format(time,stamp,number), 
@@ -437,14 +440,16 @@ def on_message(client, userdata, msg):
                 row = app.inputSheet.span("A").data.index(data[2].strip())
                 #print(row)
                 app.inputSheet.set_cell_data(row,2,value = data[1])
-                tsStart  = locale.atof(app.inputSheet.get_cell_data(row,1))
-                tsFinish = locale.atof(app.inputSheet.get_cell_data(row,2))
-                tripTime = tsFinish - tsStart
-                app.inputSheet.set_cell_data(row,3,value = locale.format_string('%0.2f',tripTime))
-                penaltyTime = locale.atof(app.inputSheet.get_cell_data(row,4))
-                finalTime = tripTime + penaltyTime
-                app.inputSheet.set_cell_data(row,5,value = locale.format_string('%0.2f',finalTime))
-                
+                # ------------ Calculate ----------
+                calculateTimes(row)
+                # tsStart  = locale.atof(app.inputSheet.get_cell_data(row,1))
+                # tsFinish = locale.atof(app.inputSheet.get_cell_data(row,2))
+                # tripTime = tsFinish - tsStart
+                # app.inputSheet.set_cell_data(row,3,value = locale.format_string('%0.2f',tripTime))
+                # penaltyTime = locale.atof(app.inputSheet.get_cell_data(row,4))
+                # finalTime = tripTime + penaltyTime
+                # app.inputSheet.set_cell_data(row,5,value = locale.format_string('%0.2f',finalTime))
+                # ----------------------------------
                 mqtt_client.publish("elzwelle/stopwatch/finish/number/akn",
                                     payload='{:} {:} {:}'.format(time,stamp,number), 
                                     qos=1)
@@ -459,6 +464,15 @@ def on_message(client, userdata, msg):
             mqtt_client.publish("elzwelle/stopwatch/start/number/error", 
                                 payload='{:} {:} {:}'.format(time,stamp,number), 
                                 qos=1)
+
+def calculateTimes(row):
+    tsStart  = locale.atof(app.inputSheet.get_cell_data(row,1))
+    tsFinish = locale.atof(app.inputSheet.get_cell_data(row,2))
+    tripTime = tsFinish - tsStart
+    app.inputSheet.set_cell_data(row,3,value = locale.format_string('%0.2f',tripTime))
+    penaltyTime = locale.atof(app.inputSheet.get_cell_data(row,4))
+    finalTime = tripTime + penaltyTime
+    app.inputSheet.set_cell_data(row,5,value = locale.format_string('%0.2f',finalTime))
 
 GATE_CELLS        = 25
 GATE_CELLS_OFFSET = 6
