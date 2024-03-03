@@ -586,8 +586,9 @@ if __name__ == '__main__':
         # #print("Ranges: ",gc.open("timestamp").list_protected_ranges(0))
         # # Open a sheet from a spreadsheet in one go
         # wks_finish = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(1)
-    except:
+    except Exception as e:
         messagebox.showerror(title="Fehler", message="Keine Verbindung zu Google Sheets!")
+        print("Error: ",e)
         exit(1)
 
     #--------------------------------- MQTT --------------------------
@@ -614,8 +615,9 @@ if __name__ == '__main__':
         mqtt_client.on_publish      = on_publish
         
         mqtt_client.loop_start()
-    except:
+    except Exception as e:
         messagebox.showerror(title="Fehler", message="Keine Verbindung zum MQTT Server!")
+        print("Error: ",e)
         exit(1)   
         
     # ---------- setup and start GUI --------------
