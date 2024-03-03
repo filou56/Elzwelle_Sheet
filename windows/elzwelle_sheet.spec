@@ -5,7 +5,7 @@ a = Analysis(
     ['elzwelle_sheet.py'],
     pathex=[],
     binaries=[],
-    datas=[('libcrypto-1_1-x64.dll', '.'), ('libssl-1_1-x64.dll', '.')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
