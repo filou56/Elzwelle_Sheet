@@ -27,7 +27,7 @@ missing module named urllib.unquote_plus - imported by urllib (conditional), req
 missing module named urllib.quote_plus - imported by urllib (conditional), requests.compat (conditional)
 missing module named urllib.unquote - imported by urllib (conditional), requests.compat (conditional), oauthlib.common (optional)
 missing module named urllib.quote - imported by urllib (conditional), requests.compat (conditional), oauthlib.common (optional), oauthlib.oauth2.rfc6749.utils (optional)
-missing module named nt - imported by shutil (conditional), ntpath (optional), pathlib (conditional), os (delayed, conditional, optional), ctypes (delayed, conditional)
+missing module named nt - imported by shutil (conditional), pathlib (conditional), os (delayed, conditional, optional), ntpath (optional), ctypes (delayed, conditional)
 missing module named 'org.python' - imported by copy (optional), xml.sax (delayed, conditional)
 missing module named winreg - imported by platform (delayed, optional), mimetypes (optional), urllib.request (delayed, conditional, optional), requests.utils (delayed, conditional, optional), dns.resolver (conditional)
 missing module named _scproxy - imported by urllib.request (conditional)

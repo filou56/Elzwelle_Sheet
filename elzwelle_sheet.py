@@ -7,6 +7,7 @@ import time
 import tkinter
 from   tkinter import ttk
 from   tkinter import messagebox
+from   tkinter import simpledialog
 import traceback
 
 import uuid
@@ -346,6 +347,9 @@ def on_message(client, userdata, msg):
     
     payload = msg.payload.decode('ISO8859-1')        # ('utf-8')
     
+    if msg.topic == 'elzwelle/stopwatch/pins':
+        mqtt_client.publish("elzwelle/stopwatch/pins/akn", payload='{:}'.format(pins), qos=1)
+    
     if msg.topic == 'elzwelle/stopwatch/course/data':
         try:
             data = payload.split(',') 
@@ -574,6 +578,8 @@ if __name__ == '__main__':
     if myPlatform == 'Linux':
         config.read('linux.ini')
 
+    pins = [int(x) for x in config.get('auth','pins').split(',')]   #string list to int list
+    
     #locale.setlocale(locale.LC_ALL, 'de_DE')
     try:
         google_client = gspread.service_account(filename=config.get('google','client_secret_json'))
@@ -622,6 +628,13 @@ if __name__ == '__main__':
         
     # ---------- setup and start GUI --------------
     app = sheetapp_tk(None)
+    
+    print(pins)
+    
+    login = False
+    while not login:
+        login = pins.count(simpledialog.askinteger("Login","Pin" )) > 0
+        
     app.title("MQTT Tabelle Elz-Zeit")
     app.refresh()
     
