@@ -17,14 +17,14 @@ from   paho import mqtt
 #from table import TableCanvas
 import tksheet
 from   tksheet import Sheet
-from   bCNC.lib.log import null
+#from   bCNC.lib.log import null
 
 # Google Spreadsheet ID for publishing times
 # Elzwelle        SPREADSHEET_ID = '1obtfHymwPSGoGoROUialryeGiMJ1vkEUWL_Gze_hyfk'
 # FilouWelle      SPREADSHEET_ID = '1M05W0igR6stS4UBPfbe7-MFx0qoe5w6ktWAcLVCDZTE'
 SPREADSHEET_ID = '1M05W0igR6stS4UBPfbe7-MFx0qoe5w6ktWAcLVCDZTE'
 
-startSheet = null
+#startSheet = null
 
 #---------------------- Fix local.DE -------------------
 class locale:
