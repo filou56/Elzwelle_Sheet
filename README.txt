@@ -19,6 +19,6 @@ s		Read sync counter
 
  = CLIENT_SECRET_JSON #config.get('google','client_secret_json')
  
- 
+ ~/.local/bin/pyinstaller elzwelle_sheet.py
  
  \opt\miniconda3\Scripts\pyinstaller.exe --onedir --add-data libcrypto-1_1-x64.dll;. --add-data libssl-1_1-x64.dll;. elzwelle_sheet.py
