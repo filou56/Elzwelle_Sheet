@@ -92,11 +92,11 @@ class sheetapp_tk(tkinter.Tk):
         
         self.run = 1
         self.headerText = ['','Training','Lauf 1','Lauf 2']
-        self.runText = tkinter.StringVar('')
+        self.runText    = tkinter.StringVar(value='')
         
-        self.training   = tkinter.BooleanVar(False)
-        self.run_1      = tkinter.BooleanVar(False)
-        self.run_2      = tkinter.BooleanVar(False)
+        self.training   = tkinter.BooleanVar(value=False)
+        self.run_1      = tkinter.BooleanVar(value=False)
+        self.run_2      = tkinter.BooleanVar(value=False)
         
         self.menuBar = tkinter.Menu(self)
         self.config(menu = self.menuBar)
