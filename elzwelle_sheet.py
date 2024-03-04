@@ -347,8 +347,21 @@ def on_message(client, userdata, msg):
     
     payload = msg.payload.decode('ISO8859-1')        # ('utf-8')
     
-    if msg.topic == 'elzwelle/stopwatch/pins':
-        mqtt_client.publish("elzwelle/stopwatch/pins/akn", payload='{:}'.format(pins), qos=1)
+    if msg.topic == 'elzwelle/stopwatch/login':
+        if config.getboolean("auth","app_pin_enabled"):
+            print("PIN enabled")
+            pin = int(payload[:4], 16)-4096
+            print(pin)
+            print(pins.count(pin))
+            if pins.count(pin) > 0:
+                mqtt_client.publish("elzwelle/stopwatch/login/akn", payload="4f4b"+payload[4:], qos=1)
+            else:
+                mqtt_client.publish("elzwelle/stopwatch/login/akn", payload="4e4f"+payload[4:], qos=1)
+        else:
+            print("PIN disabled")
+            print("PIN OK")
+            mqtt_client.publish("elzwelle/stopwatch/login/akn", payload="4f4b"+payload[4:], qos=1)
+            
     
     if msg.topic == 'elzwelle/stopwatch/course/data':
         try:
@@ -570,6 +583,11 @@ if __name__ == '__main__':
         'gates':25,
         'rows':300,
     }
+    
+    config['auth']   = {
+        'pin_enabled':"no",
+        'app_pin_enabled':'no',
+    }
         
     # Platform specific
     if myPlatform == 'Windows':
@@ -606,7 +624,7 @@ if __name__ == '__main__':
         mqtt_client = paho.Client(client_id="elzwelle_"+str(uuid.uuid4()), userdata=None, protocol=paho.MQTTv311)
     
         # enable TLS for secure connection
-        if config.get('mqtt','tls_enabled'):
+        if config.getboolean('mqtt','tls_enabled'):
             mqtt_client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
         # set username and password
         mqtt_client.username_pw_set(config.get('mqtt','user'),
@@ -631,9 +649,10 @@ if __name__ == '__main__':
     
     print(pins)
     
-    login = False
-    while not login:
-        login = pins.count(simpledialog.askinteger("Login","Pin" )) > 0
+    if config.getboolean("auth", "pin_enabled"): 
+        login = False
+        while not login:
+            login = pins.count(simpledialog.askinteger("Login","Pin" )) > 0
         
     app.title("MQTT Tabelle Elz-Zeit")
     app.refresh()
