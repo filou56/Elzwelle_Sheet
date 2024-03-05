@@ -144,7 +144,7 @@ class sheetapp_tk(tkinter.Tk):
         self.startSheet.span('A:').align('right')
         
         self.startSheet.disable_bindings("All")
-        self.startSheet.enable_bindings("edit_cell","single_select")
+        self.startSheet.enable_bindings("edit_cell","single_select","row_select","copy")
         
         #----- Finish Page -------
                  
@@ -159,7 +159,7 @@ class sheetapp_tk(tkinter.Tk):
         self.finishSheet.span('A:').align('right')
         
         self.finishSheet.disable_bindings("All")
-        self.finishSheet.enable_bindings("edit_cell","single_select")
+        self.finishSheet.enable_bindings("edit_cell","single_select","row_select","copy")
         
         #----- Course Page -------
         
@@ -173,7 +173,7 @@ class sheetapp_tk(tkinter.Tk):
         self.courseSheet.grid(row = 0, column = 0, sticky = "nswe")
         
         self.courseSheet.disable_bindings("All")
-        self.courseSheet.enable_bindings("edit_cell","single_select")
+        self.courseSheet.enable_bindings("edit_cell","single_select","row_select","copy")
         
         #----- Input Page Training -------
         
@@ -196,7 +196,7 @@ class sheetapp_tk(tkinter.Tk):
         inputSpan.align('right')
         
         self.inputSheet_T.disable_bindings("All")
-        self.inputSheet_T.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
+        self.inputSheet_T.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select","copy")
         
         #----- Input Page 1-------
         
@@ -219,7 +219,7 @@ class sheetapp_tk(tkinter.Tk):
         inputSpan.align('right')
         
         self.inputSheet_1.disable_bindings("All")
-        self.inputSheet_1.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
+        self.inputSheet_1.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select","copy")
         
         #----- Input Page 2-------
         
@@ -242,7 +242,7 @@ class sheetapp_tk(tkinter.Tk):
         inputSpan.align('right')
         
         self.inputSheet_2.disable_bindings("All")
-        self.inputSheet_2.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select")
+        self.inputSheet_2.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select","copy")
         
         self.setRun(1)
         self.tabControl.select(3)
