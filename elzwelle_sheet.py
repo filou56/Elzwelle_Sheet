@@ -80,8 +80,31 @@ class sheetapp_tk(tkinter.Tk):
             self.run = 0
         self.runText.set(self.headerText[self.run])
 
+    def endEditCell(self, event):
+        eventname = event.get("eventname")
+        sheetname = event.get("sheetname")
+        print(eventname,sheetname)
+        for key, value in event.cells.table.items():
+            row = key[0]
+            col = key[1]
+            print(row,col,value)
+            penaltyTime = app.penaltySum(row)    
+            app.inputSheet.set_cell_data(row,4,value = locale.format_string('%0.2f', penaltyTime) )
+            if col >= 6:
+                if int(value) >= 50:
+                    app.inputSheet[row,col].highlight(bg = "pink")
+                elif int(value) >= 2:
+                    app.inputSheet[row,col].highlight(bg = "khaki")
+                else:
+                    app.inputSheet[row,col].highlight(bg = "aquamarine")
+            else:
+                app.inputSheet[row,col].highlight(bg='linen')
+            calculateTimes(row)
+        
     def initialize(self):
-        rows = config.getint('competition','rows')
+        individuals = config.getint('competition','individuals')
+        teams = config.getint('competition','teams')
+        rows = individuals + teams
         noteStyle = ttk.Style()
         noteStyle.theme_use('default')
         noteStyle.configure("TNotebook", background='lightgray')
@@ -136,6 +159,7 @@ class sheetapp_tk(tkinter.Tk):
         self.startTab.grid_columnconfigure(0, weight = 1)
         self.startTab.grid_rowconfigure(0, weight = 1)
         self.startSheet = Sheet(self.startTab,
+                           name = 'startSheet',
                            #data = [['00:00:00','0,00','',''] for r in range(2)],
                            header = ['Uhrzeit','Zeitstempel','Startnummer','Kommentar'])
         self.startSheet.enable_bindings()
@@ -144,13 +168,14 @@ class sheetapp_tk(tkinter.Tk):
         self.startSheet.span('A:').align('right')
         
         self.startSheet.disable_bindings("All")
-        self.startSheet.enable_bindings("edit_cell","single_select","row_select","copy")
+        self.startSheet.enable_bindings("edit_cell","single_select","drag_select","row_select","copy")
         
         #----- Finish Page -------
                  
         self.finishTab.grid_columnconfigure(0, weight = 1)
         self.finishTab.grid_rowconfigure(0, weight = 1)
         self.finishSheet = Sheet(self.finishTab,
+                           name = 'finishSheet',
                            #data = [['00:00:00','0,00','',''] for r in range(200)],
                            header = ['Uhrzeit','Zeitstempel','Startnummer','Kommentar'])
         self.finishSheet.enable_bindings()
@@ -159,13 +184,14 @@ class sheetapp_tk(tkinter.Tk):
         self.finishSheet.span('A:').align('right')
         
         self.finishSheet.disable_bindings("All")
-        self.finishSheet.enable_bindings("edit_cell","single_select","row_select","copy")
+        self.finishSheet.enable_bindings("edit_cell","single_select","drag_select","row_select","copy")
         
         #----- Course Page -------
         
         self.courseTab.grid_columnconfigure(0, weight = 1)
         self.courseTab.grid_rowconfigure(0, weight = 1)
         self.courseSheet = Sheet(self.courseTab,
+                           name = 'courseSheet',
                            #data = [['0','0','0',''] for r in range(200)],
                            header = ['Startnummer','Tornummer','Strafzeit','Kommentar'])
         self.courseSheet.enable_bindings()
@@ -173,16 +199,18 @@ class sheetapp_tk(tkinter.Tk):
         self.courseSheet.grid(row = 0, column = 0, sticky = "nswe")
         
         self.courseSheet.disable_bindings("All")
-        self.courseSheet.enable_bindings("edit_cell","single_select","row_select","copy")
+        self.courseSheet.enable_bindings("edit_cell","single_select","drag_select","row_select","copy")
         
         #----- Input Page Training -------
         
         self.inputTab_T.grid_columnconfigure(0, weight = 1)
         self.inputTab_T.grid_rowconfigure(0, weight = 1)
         self.inputSheet_T = Sheet(self.inputTab_T,
+                           name = 'inputSheet_T',
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-        #                         [f"0" for c in range(25)] for r in range(200)],
-                                  (["0"]*26) for r in range(rows)],
+                                  (["0"]*26) for r in range(individuals)]+
+                                  [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
+                                  (["0"]*26) for r in range(teams)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                     [f"{c+1}" for c in range(25)]+["Ziel"])
         self.inputSheet_T.enable_bindings()
@@ -196,16 +224,18 @@ class sheetapp_tk(tkinter.Tk):
         inputSpan.align('right')
         
         self.inputSheet_T.disable_bindings("All")
-        self.inputSheet_T.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select","copy")
-        
+        self.inputSheet_T.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_T.extra_bindings("end_edit_cell", func=self.endEditCell)
         #----- Input Page 1-------
         
         self.inputTab_1.grid_columnconfigure(0, weight = 1)
         self.inputTab_1.grid_rowconfigure(0, weight = 1)
         self.inputSheet_1 = Sheet(self.inputTab_1,
+                           name = 'inputSheet_1',
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-        #                         [f"0" for c in range(25)] for r in range(200)],
-                                  (["0"]*26) for r in range(rows)],
+                                  (["0"]*26) for r in range(individuals)]+
+                                  [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
+                                  (["0"]*26) for r in range(teams)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                     [f"{c+1}" for c in range(25)]+["Ziel"])
         self.inputSheet_1.enable_bindings()
@@ -219,16 +249,18 @@ class sheetapp_tk(tkinter.Tk):
         inputSpan.align('right')
         
         self.inputSheet_1.disable_bindings("All")
-        self.inputSheet_1.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_1.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
         
         #----- Input Page 2-------
         
         self.inputTab_2.grid_columnconfigure(0, weight = 1)
         self.inputTab_2.grid_rowconfigure(0, weight = 1)
         self.inputSheet_2 = Sheet(self.inputTab_2,
+                           name = 'inputSheet_2',
                            data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-        #                         [f"0" for c in range(25)] for r in range(200)],
-                                  (["0"]*26) for r in range(rows)],
+                                  (["0"]*26) for r in range(individuals)]+
+                                  [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
+                                  (["0"]*26) for r in range(teams)],
                            header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                     [f"{c+1}" for c in range(25)]+["Ziel"])
         self.inputSheet_2.enable_bindings()
@@ -242,17 +274,21 @@ class sheetapp_tk(tkinter.Tk):
         inputSpan.align('right')
         
         self.inputSheet_2.disable_bindings("All")
-        self.inputSheet_2.enable_bindings("edit_cell","single_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_2.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
         
         self.setRun(1)
         self.tabControl.select(3)
         self.resizable(True,True)
-        
+           
     def penaltySum(self,row):
         sumSeconds = 0
         rowData = self.inputSheet[row].data
         for penalty in rowData[6::]:
-            sumSeconds = sumSeconds + locale.atof(penalty)
+            if penalty is int:
+                sumSeconds = sumSeconds + penalty
+            if penalty is str:
+                sumSeconds = sumSeconds + locale.atof(penalty)
+            sumSeconds = sumSeconds + int(penalty)
         return sumSeconds   
     
     def refresh(self):
@@ -369,10 +405,13 @@ def on_message(client, userdata, msg):
             app.courseSheet.insert_row(data)
             row = app.inputSheet.span("A").data.index(data[0].strip()) 
             col = int(data[1].strip())
-            app.inputSheet.set_cell_data(row,col+5,value = data[2])
-            if int(data[2]) == 50:
+            val = int(data[2].strip())
+            if row >= 199:
+                val = val + int(app.inputSheet[row,col+5].data)
+            app.inputSheet.set_cell_data(row,col+5,value = val)
+            if val >= 50:
                 app.inputSheet[row,col+5].highlight(bg = "pink")
-            elif int(data[2]) == 2:
+            elif val >= 2:
                 app.inputSheet[row,col+5].highlight(bg = "khaki")
             
             penaltyTime = app.penaltySum(row)    
@@ -381,7 +420,6 @@ def on_message(client, userdata, msg):
             if locale.atof(app.inputSheet.get_cell_data(row,2)) > 0.0:  # TsFinish > 0
                 calculateTimes(row)
         
-            #print(sumSeconds,cellValue)
         except Exception as e:
             print("MQTT Decode exception: ",e,payload)
             
