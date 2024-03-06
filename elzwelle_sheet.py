@@ -3,22 +3,23 @@ import gc
 import os
 import platform
 import time
-#import locale
+import io
+import csv
+import traceback
+import uuid
+import gspread
+import paho.mqtt.client as paho
 import tkinter
+import tksheet
+
 from   tkinter import ttk
 from   tkinter import messagebox
 from   tkinter import simpledialog
-import traceback
-
-import uuid
-#import socket
-import gspread
-import paho.mqtt.client as paho
-from   paho import mqtt
-#from table import TableCanvas
-import tksheet
+from   tkinter import filedialog
+from   os.path import normpath
+from   paho    import mqtt
 from   tksheet import Sheet
-#from   bCNC.lib.log import null
+
 
 # Google Spreadsheet ID for publishing times
 # Elzwelle        SPREADSHEET_ID = '1obtfHymwPSGoGoROUialryeGiMJ1vkEUWL_Gze_hyfk'
@@ -104,7 +105,7 @@ class sheetapp_tk(tkinter.Tk):
     def initialize(self):
         individuals = config.getint('competition','individuals')
         teams = config.getint('competition','teams')
-        rows = individuals + teams
+        #rows = individuals + teams
         noteStyle = ttk.Style()
         noteStyle.theme_use('default')
         noteStyle.configure("TNotebook", background='lightgray')
@@ -123,12 +124,18 @@ class sheetapp_tk(tkinter.Tk):
         
         self.menuBar = tkinter.Menu(self)
         self.config(menu = self.menuBar)
+        
+        self.menuFile = tkinter.Menu(self.menuBar, tearoff=False)
+        self.menuFile.add_command(command = self.saveSheet, label="Blatt speichern")
+        self.menuFile.add_command(command = self.loadSheet, label="Blatt laden")
+        
         self.menuCompetition = tkinter.Menu(self.menuBar, tearoff=False) 
         
         self.menuCompetition.add_checkbutton(command=lambda: self.setRun(1),label="Training",variable=self.training,onvalue=1, offvalue=0)
         self.menuCompetition.add_checkbutton(command=lambda: self.setRun(2),label="Lauf 1",variable=self.run_1,onvalue=1, offvalue=0)
         self.menuCompetition.add_checkbutton(command=lambda: self.setRun(3),label="Lauf 2",variable=self.run_2,onvalue=1, offvalue=0)
         
+        self.menuBar.add_cascade(label="Datei",menu=self.menuFile)
         self.menuBar.add_cascade(label="Wettbewerb",menu=self.menuCompetition)
         
         self.pageHeader = tkinter.Label(self,textvariable=self.runText,
@@ -295,6 +302,84 @@ class sheetapp_tk(tkinter.Tk):
         gc.collect()
         self.after(500, self.refresh)
 
+    def getSelectedSheet(self):
+        tab = self.tabControl.tab(self.tabControl.select(),"text")
+        if tab == "Start":
+            return self.startSheet
+        elif tab == "Ziel":
+            return self.finishSheet
+        elif tab == "Strecke":
+            return self.courseSheet
+        elif tab == "Training":
+            return self.inputSheet_T
+        elif tab == "Lauf 1":
+            return self.inputSheet_1
+        elif tab == "Lauf 2": 
+            return self.inputSheet_2
+        
+
+    def saveSheet(self):
+        saveSheet = self.getSelectedSheet()
+        print("Save: "+saveSheet.name)
+        # create a span which encompasses the table, header and index
+        # all data values, no displayed values
+        sheet_span = saveSheet.span(
+            header=True,
+            index=True,
+            hdisp=False,
+            idisp=False,
+        )
+        
+        filepath = filedialog.asksaveasfilename(
+            parent=self,
+            title="Save sheet as",
+            filetypes=[("CSV File", ".csv"), ("TSV File", ".tsv")],
+            defaultextension=".csv",
+            confirmoverwrite=True,
+        )
+        if not filepath or not filepath.lower().endswith((".csv", ".tsv")):
+            return
+        try:
+            with open(normpath(filepath), "w", newline="", encoding="utf-8") as fh:
+                writer = csv.writer(
+                    fh,
+                    dialect=csv.excel if filepath.lower().endswith(".csv") else csv.excel_tab,
+                    lineterminator="\n",
+                )
+                writer.writerows(sheet_span.data)
+        except Exception as error:
+            print(error)
+            return
+
+    def loadSheet(self):
+        loadSheet = self.getSelectedSheet()
+        print("Load: "+loadSheet.name)
+        
+        sheet_span = loadSheet.span(
+            header=True,
+            index=True,
+            hdisp=False,
+            idisp=False,
+        )
+        
+        filepath = filedialog.askopenfilename(parent=self, title="Select a csv file")
+        if not filepath or not filepath.lower().endswith((".csv", ".tsv")):
+            return
+        try:
+            with open(normpath(filepath), "r") as filehandle:
+                filedata = filehandle.read()
+            loadSheet.reset()
+            sheet_span.data = [
+                r
+                for r in csv.reader(
+                    io.StringIO(filedata),
+                    dialect=csv.Sniffer().sniff(filedata),
+                    skipinitialspace=False,
+                )
+            ]
+        except Exception as error:
+            print(error)
+            return
 #-------------------------------------------------------------------
 
 # setting callbacks for different events to see if it works, print the message etc.
@@ -419,7 +504,9 @@ def on_message(client, userdata, msg):
             
             if locale.atof(app.inputSheet.get_cell_data(row,2)) > 0.0:  # TsFinish > 0
                 calculateTimes(row)
-        
+                
+            mqtt_client.publish("elzwelle/stopwatch/course/data/akn",payload=payload, qos=1)
+            
         except Exception as e:
             print("MQTT Decode exception: ",e,payload)
             
