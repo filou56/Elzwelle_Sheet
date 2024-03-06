@@ -488,12 +488,23 @@ def on_message(client, userdata, msg):
         try:
             data = payload.split(',') 
             app.courseSheet.insert_row(data)
-            row = app.inputSheet.span("A").data.index(data[0].strip()) 
+            
+            num = int(data[0].strip())
+            if num >= 200:
+                num = int((num-200) / 3) * 3 + 200
+            
+            row = app.inputSheet.span("A").data.index(str(num)) 
+            print(num,row)
+            
             col = int(data[1].strip())
             val = int(data[2].strip())
+            
             if row >= 199:
+                print(int((row-199) / 3) + 199)
                 val = val + int(app.inputSheet[row,col+5].data)
+                
             app.inputSheet.set_cell_data(row,col+5,value = val)
+            
             if val >= 50:
                 app.inputSheet[row,col+5].highlight(bg = "pink")
             elif val >= 2:
@@ -505,7 +516,8 @@ def on_message(client, userdata, msg):
             if locale.atof(app.inputSheet.get_cell_data(row,2)) > 0.0:  # TsFinish > 0
                 calculateTimes(row)
                 
-            mqtt_client.publish("elzwelle/stopwatch/course/data/akn",payload=payload, qos=1)
+            print("Send")
+            #mqtt_client.publish("elzwelle/stopwatch/course/data/akn",payload=payload, qos=1)
             
         except Exception as e:
             print("MQTT Decode exception: ",e,payload)
