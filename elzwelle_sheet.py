@@ -494,13 +494,11 @@ def on_message(client, userdata, msg):
                 num = int((num-200) / 3) * 3 + 200
             
             row = app.inputSheet.span("A").data.index(str(num)) 
-            print(num,row)
             
             col = int(data[1].strip())
             val = int(data[2].strip())
             
             if row >= 199:
-                print(int((row-199) / 3) + 199)
                 val = val + int(app.inputSheet[row,col+5].data)
                 
             app.inputSheet.set_cell_data(row,col+5,value = val)
@@ -516,8 +514,7 @@ def on_message(client, userdata, msg):
             if locale.atof(app.inputSheet.get_cell_data(row,2)) > 0.0:  # TsFinish > 0
                 calculateTimes(row)
                 
-            print("Send")
-            #mqtt_client.publish("elzwelle/stopwatch/course/data/akn",payload=payload, qos=1)
+            mqtt_client.publish("elzwelle/stopwatch/course/data/akn",payload=payload, qos=1)
             
         except Exception as e:
             print("MQTT Decode exception: ",e,payload)
@@ -650,8 +647,14 @@ def copyToGoogleSheet():
             startNums = wks_input.col_values(4)
             print("NUM: ",startNums)
             
-            # Startnummer Position suchen
-            row = startNums.index(data[0])+1
+            num = int(data[0].strip())
+            if num >= 200:
+                num = int((num-200) / 3) * 3 + 200   
+                # Team position in Google suchen
+                row = startNums.index(str(num)+'ff')+1 
+            else:
+                # Startnummer position in Google suchen
+                row = startNums.index(str(num))+1
             print("ROW: ",row)
         
             # Zeile aus Google holen
