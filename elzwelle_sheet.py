@@ -60,23 +60,26 @@ class sheetapp_tk(tkinter.Tk):
         return
 
     def setRun(self,run):
-        self.run = run
+        self.run = int(run)
         #print(run)
         if run == 1:
             self.training.set(True)
             self.run_1.set(False)
             self.run_2.set(False)
             self.inputSheet = self.inputSheet_T
+            self.tabControl.select(3)
         elif run == 2:
             self.training.set(False)
             self.run_1.set(True)
             self.run_2.set(False)
             self.inputSheet = self.inputSheet_1
+            self.tabControl.select(4)
         elif run == 3:
             self.training.set(False)
             self.run_1.set(False)
             self.run_2.set(True)
             self.inputSheet = self.inputSheet_2
+            self.tabControl.select(5)
         else:
             self.run = 0
         self.runText.set(self.headerText[self.run])
@@ -91,7 +94,7 @@ class sheetapp_tk(tkinter.Tk):
             print(row,col,value)
             penaltyTime = app.penaltySum(row)    
             app.inputSheet.set_cell_data(row,4,value = locale.format_string('%0.2f', penaltyTime) )
-            if col >= 6:
+            if int(col) >= 6:
                 if int(value) >= 50:
                     app.inputSheet[row,col].highlight(bg = "pink")
                 elif int(value) >= 2:
@@ -166,9 +169,15 @@ class sheetapp_tk(tkinter.Tk):
         self.startTab.grid_columnconfigure(0, weight = 1)
         self.startTab.grid_rowconfigure(0, weight = 1)
         self.startSheet = Sheet(self.startTab,
-                           name = 'startSheet',
-                           #data = [['00:00:00','0,00','',''] for r in range(2)],
-                           header = ['Uhrzeit','Zeitstempel','Startnummer','Kommentar'])
+                               name = 'startSheet',
+                               #data = [['00:00:00','0,00','',''] for r in range(2)],
+                               header = ['Uhrzeit','Zeitstempel','Startnummer','Kommentar'],
+                               header_bg = "azure",
+                               header_fg = "black",
+                               index_bg  = "azure",
+                               index_fg  = "gray",
+                               font = ("Calibri", 12, "bold")
+                            )
         self.startSheet.enable_bindings()
         self.startSheet.grid(column = 0, row = 0)
         self.startSheet.grid(row = 0, column = 0, sticky = "nswe")
@@ -182,9 +191,16 @@ class sheetapp_tk(tkinter.Tk):
         self.finishTab.grid_columnconfigure(0, weight = 1)
         self.finishTab.grid_rowconfigure(0, weight = 1)
         self.finishSheet = Sheet(self.finishTab,
-                           name = 'finishSheet',
-                           #data = [['00:00:00','0,00','',''] for r in range(200)],
-                           header = ['Uhrzeit','Zeitstempel','Startnummer','Kommentar'])
+                               name = 'finishSheet',
+                               #data = [['00:00:00','0,00','',''] for r in range(200)],
+                               header = ['Uhrzeit','Zeitstempel','Startnummer','Kommentar'],
+                               header_bg = "azure",
+                               header_fg = "black",
+                               index_bg  = "azure",
+                               index_fg  = "gray",
+                               font = ("Calibri", 12, "bold")
+                            )
+        
         self.finishSheet.enable_bindings()
         self.finishSheet.grid(column = 0, row = 0)
         self.finishSheet.grid(row = 0, column = 0, sticky = "nswe")
@@ -198,9 +214,16 @@ class sheetapp_tk(tkinter.Tk):
         self.courseTab.grid_columnconfigure(0, weight = 1)
         self.courseTab.grid_rowconfigure(0, weight = 1)
         self.courseSheet = Sheet(self.courseTab,
-                           name = 'courseSheet',
-                           #data = [['0','0','0',''] for r in range(200)],
-                           header = ['Startnummer','Tornummer','Strafzeit','Kommentar'])
+                               name = 'courseSheet',
+                               #data = [['0','0','0',''] for r in range(200)],
+                               header = ['Startnummer','Tornummer','Strafzeit','Kommentar'],
+                               header_bg = "azure",
+                               header_fg = "black",
+                               index_bg  = "azure",
+                               index_fg  = "gray",
+                               font = ("Calibri", 12, "bold")
+                            )
+        
         self.courseSheet.enable_bindings()
         self.courseSheet.grid(column = 0, row = 0)
         self.courseSheet.grid(row = 0, column = 0, sticky = "nswe")
@@ -213,13 +236,20 @@ class sheetapp_tk(tkinter.Tk):
         self.inputTab_T.grid_columnconfigure(0, weight = 1)
         self.inputTab_T.grid_rowconfigure(0, weight = 1)
         self.inputSheet_T = Sheet(self.inputTab_T,
-                           name = 'inputSheet_T',
-                           data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-                                  (["0"]*26) for r in range(individuals)]+
-                                  [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
-                                  (["0"]*26) for r in range(teams)],
-                           header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
-                                    [f"{c+1}" for c in range(25)]+["Ziel"])
+                               name = 'inputSheet_T',
+                               data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
+                                      (["0"]*26) for r in range(individuals)]+
+                                      [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
+                                      (["0"]*26) for r in range(teams)],
+                               header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
+                                        [f"{c+1}" for c in range(25)]+["Ziel"],
+                               header_bg = "azure",
+                               header_fg = "black",
+                               index_bg  = "azure",
+                               index_fg  = "gray",
+                               font = ("Calibri", 12, "bold")
+                            )
+              
         self.inputSheet_T.enable_bindings()
         self.inputSheet_T.grid(column = 0, row = 0)
         self.inputSheet_T.grid(row = 0, column = 0, sticky = "nswe")
@@ -238,13 +268,20 @@ class sheetapp_tk(tkinter.Tk):
         self.inputTab_1.grid_columnconfigure(0, weight = 1)
         self.inputTab_1.grid_rowconfigure(0, weight = 1)
         self.inputSheet_1 = Sheet(self.inputTab_1,
-                           name = 'inputSheet_1',
-                           data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-                                  (["0"]*26) for r in range(individuals)]+
-                                  [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
-                                  (["0"]*26) for r in range(teams)],
-                           header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
-                                    [f"{c+1}" for c in range(25)]+["Ziel"])
+                               name = 'inputSheet_1',
+                               data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
+                                      (["0"]*26) for r in range(individuals)]+
+                                      [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
+                                      (["0"]*26) for r in range(teams)],
+                               header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
+                                        [f"{c+1}" for c in range(25)]+["Ziel"],
+                               header_bg = "azure",
+                               header_fg = "black",
+                               index_bg  = "azure",
+                               index_fg  = "gray",
+                               font = ("Calibri", 12, "bold")
+                            )
+        
         self.inputSheet_1.enable_bindings()
         self.inputSheet_1.grid(column = 0, row = 0)
         self.inputSheet_1.grid(row = 0, column = 0, sticky = "nswe")
@@ -257,19 +294,27 @@ class sheetapp_tk(tkinter.Tk):
         
         self.inputSheet_1.disable_bindings("All")
         self.inputSheet_1.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_T.extra_bindings("end_edit_cell", func=self.endEditCell)
         
         #----- Input Page 2-------
         
         self.inputTab_2.grid_columnconfigure(0, weight = 1)
         self.inputTab_2.grid_rowconfigure(0, weight = 1)
         self.inputSheet_2 = Sheet(self.inputTab_2,
-                           name = 'inputSheet_2',
-                           data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-                                  (["0"]*26) for r in range(individuals)]+
-                                  [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
-                                  (["0"]*26) for r in range(teams)],
-                           header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
-                                    [f"{c+1}" for c in range(25)]+["Ziel"])
+                               name = 'inputSheet_2',
+                               data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
+                                      (["0"]*26) for r in range(individuals)]+
+                                      [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
+                                      (["0"]*26) for r in range(teams)],
+                               header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
+                                        [f"{c+1}" for c in range(25)]+["Ziel"],
+                               header_bg = "azure",
+                               header_fg = "black",
+                               index_bg  = "azure",
+                               index_fg  = "gray",
+                               font = ("Calibri", 12, "bold")
+                            )
+        
         self.inputSheet_2.enable_bindings()
         self.inputSheet_2.grid(column = 0, row = 0)
         self.inputSheet_2.grid(row = 0, column = 0, sticky = "nswe")
@@ -282,6 +327,7 @@ class sheetapp_tk(tkinter.Tk):
         
         self.inputSheet_2.disable_bindings("All")
         self.inputSheet_2.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_T.extra_bindings("end_edit_cell", func=self.endEditCell)
         
         self.setRun(1)
         self.tabControl.select(3)
@@ -289,7 +335,7 @@ class sheetapp_tk(tkinter.Tk):
            
     def penaltySum(self,row):
         sumSeconds = 0
-        rowData = self.inputSheet[row].data
+        rowData = self.inputSheet[int(row)].data
         for penalty in rowData[6::]:
             if penalty is int:
                 sumSeconds = sumSeconds + penalty
@@ -493,7 +539,7 @@ def on_message(client, userdata, msg):
             if num >= 200:
                 num = int((num-200) / 3) * 3 + 200
             
-            row = app.inputSheet.span("A").data.index(str(num)) 
+            row = int(app.inputSheet.span("A").data.index(str(num)))
             
             col = int(data[1].strip())
             val = int(data[2].strip())
@@ -507,7 +553,9 @@ def on_message(client, userdata, msg):
                 app.inputSheet[row,col+5].highlight(bg = "pink")
             elif val >= 2:
                 app.inputSheet[row,col+5].highlight(bg = "khaki")
-            
+            else:
+                app.inputSheet[row,col+5].highlight(bg = "aquamarine")
+                
             penaltyTime = app.penaltySum(row)    
             app.inputSheet.set_cell_data(row,4,value = locale.format_string('%0.2f', penaltyTime) )
             
@@ -651,10 +699,10 @@ def copyToGoogleSheet():
             if num >= 200:
                 num = int((num-200) / 3) * 3 + 200   
                 # Team position in Google suchen
-                row = startNums.index(str(num)+'ff')+1 
+                row = int(startNums.index(str(num)+'ff'))+1 
             else:
                 # Startnummer position in Google suchen
-                row = startNums.index(str(num))+1
+                row = int(startNums.index(str(num)))+1
             print("ROW: ",row)
         
             # Zeile aus Google holen
