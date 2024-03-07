@@ -239,7 +239,7 @@ class sheetapp_tk(tkinter.Tk):
                                name = 'inputSheet_T',
                                data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
                                       (["0"]*26) for r in range(individuals)]+
-                                      [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
+                                      [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+
                                       (["0"]*26) for r in range(teams)],
                                header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                         [f"{c+1}" for c in range(25)]+["Ziel"],
@@ -271,7 +271,7 @@ class sheetapp_tk(tkinter.Tk):
                                name = 'inputSheet_1',
                                data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
                                       (["0"]*26) for r in range(individuals)]+
-                                      [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
+                                      [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+
                                       (["0"]*26) for r in range(teams)],
                                header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                         [f"{c+1}" for c in range(25)]+["Ziel"],
@@ -304,7 +304,7 @@ class sheetapp_tk(tkinter.Tk):
                                name = 'inputSheet_2',
                                data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
                                       (["0"]*26) for r in range(individuals)]+
-                                      [[f"{r*3+200}",'0,00','0,00','0,00','0,00','0,00']+
+                                      [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+
                                       (["0"]*26) for r in range(teams)],
                                header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                         [f"{c+1}" for c in range(25)]+["Ziel"],
@@ -536,15 +536,15 @@ def on_message(client, userdata, msg):
             app.courseSheet.insert_row(data)
             
             num = int(data[0].strip())
-            if num >= 200:
-                num = int((num-200) / 3) * 3 + 200
+            if num >= firstteam:
+                num = int((num-firstteam) / 3) * 3 + firstteam
             
             row = int(app.inputSheet.span("A").data.index(str(num)))
             
             col = int(data[1].strip())
             val = int(data[2].strip())
             
-            if row >= 199:
+            if num >= firstteam:
                 val = val + int(app.inputSheet[row,col+5].data)
                 
             app.inputSheet.set_cell_data(row,col+5,value = val)
@@ -696,8 +696,8 @@ def copyToGoogleSheet():
             print("NUM: ",startNums)
             
             num = int(data[0].strip())
-            if num >= 200:
-                num = int((num-200) / 3) * 3 + 200   
+            if num >= firstteam:
+                num = int((num-firstteam) / 3) * 3 + firstteam   
                 # Team position in Google suchen
                 row = int(startNums.index(str(num)+'ff'))+1 
             else:
@@ -769,7 +769,9 @@ if __name__ == '__main__':
     
     config['competition']   = {
         'gates':25,
-        'rows':300,
+        'individuals':199,
+        'firstteam':200,
+        'teams':40,
     }
     
     config['auth']   = {
@@ -785,6 +787,7 @@ if __name__ == '__main__':
         config.read('linux.ini')
 
     pins = [int(x) for x in config.get('auth','pins').split(',')]   #string list to int list
+    firstteam = config.getint('competition','firstteam')
     
     #locale.setlocale(locale.LC_ALL, 'de_DE')
     try:
