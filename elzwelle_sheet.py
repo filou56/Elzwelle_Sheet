@@ -19,7 +19,7 @@ from   tkinter import filedialog
 from   os.path import normpath
 from   paho    import mqtt
 from   tksheet import Sheet
-
+from   pathlib import Path
 
 # Google Spreadsheet ID for publishing times
 # Elzwelle        SPREADSHEET_ID = '1obtfHymwPSGoGoROUialryeGiMJ1vkEUWL_Gze_hyfk'
@@ -788,7 +788,13 @@ if __name__ == '__main__':
     
     #locale.setlocale(locale.LC_ALL, 'de_DE')
     try:
-        google_client = gspread.service_account(filename=config.get('google','client_secret_json'))
+        client_secret_file = config.get('google','client_secret_json')
+        if client_secret_file.startswith(".elzwelle"):
+            home_dir = Path.home()
+            print( f'Home path: { home_dir }' )
+            client_secret_file = os.path.join(home_dir,client_secret_file)
+        print( f'Client secret path: { client_secret_file }' )
+        google_client = gspread.service_account(filename=client_secret_file)
         google_client.http_client.set_timeout(5)
         # Open a sheet from a spreadsheet in one go
         wks_input = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(0)
