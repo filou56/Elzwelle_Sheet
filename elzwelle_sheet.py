@@ -305,6 +305,7 @@ class sheetapp_tk(tkinter.Tk):
             header_menu=False,
             empty_space_menu=False,
         )
+        
         #----- Input Page 1-------
         
         self.inputTab_1.grid_columnconfigure(0, weight = 1)
@@ -337,6 +338,15 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_1.disable_bindings("All")
         self.inputSheet_1.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
         self.inputSheet_1.extra_bindings("end_edit_cell", func=self.endEditCell)
+        self.inputSheet_1.extra_bindings("end_copy", func=self.endCopy)
+        
+        self.inputSheet_1.popup_menu_add_command(
+            "Swap Cell",
+            self.swapCells,
+            index_menu=False,
+            header_menu=False,
+            empty_space_menu=False,
+        )
         
         #----- Input Page 2-------
         
@@ -370,6 +380,17 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_2.disable_bindings("All")
         self.inputSheet_2.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
         self.inputSheet_2.extra_bindings("end_edit_cell", func=self.endEditCell)
+        self.inputSheet_2.extra_bindings("end_copy", func=self.endCopy)
+        
+        self.inputSheet_2.popup_menu_add_command(
+            "Swap Cell",
+            self.swapCells,
+            index_menu=False,
+            header_menu=False,
+            empty_space_menu=False,
+        )
+        
+        # ------------------------------------------------------------
         
         self.setRun(1)
         self.tabControl.select(3)
