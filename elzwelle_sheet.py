@@ -43,11 +43,15 @@ class locale:
 # Define the GUI
 #-------------------------------------------------------------------
 class sheetapp_tk(tkinter.Tk):
+    
     def __init__(self,parent):
         tkinter.Tk.__init__(self,parent)
         self.parent = parent
         self.initialize()
-        self.run   = 0
+        self.run  =  0
+        self.xRow = -1
+        self.xCol = -1
+        self.xVal = ''
 
     def showError(self, *args):
         err = traceback.format_exception(*args)
@@ -84,13 +88,42 @@ class sheetapp_tk(tkinter.Tk):
             self.run = 0
         self.runText.set(self.headerText[self.run])
 
+    def exchangeCell(self):
+        print("Excange: ")
+        cells = self.inputSheet.get_selected_cells()
+        if self.xRow >= 0:
+            for cell in cells:
+                row = cell[0]
+                col = cell[1]
+                val = self.inputSheet[row,col].data
+                print(self.xRow,self.xCol,self.xVal)
+                print(row,col,val)
+                app.inputSheet.set_cell_data(row,col,value = self.xVal)
+                app.inputSheet.set_cell_data(self.xRow,self.xCol,value = val)
+                self.xRow = -1
+                self.xCol = -1
+                self.xVal = ''
+        else:
+            messagebox.showerror(title="Fehler", message="Keine Quelle ausgewält!")
+               
+    def endCopy(self,event):
+        print("Copy: ")
+        eventname = event.get("eventname")
+        sheetname = event.get("sheetname")
+        print(eventname,sheetname)
+        for cell, value in event.cells.table.items():
+            self.xRow = cell[0]
+            self.xCol = cell[1]
+            self.xVal = value
+            print(self.xRow,self.xCol,self.xVal)          
+                  
     def endEditCell(self, event):
         eventname = event.get("eventname")
         sheetname = event.get("sheetname")
         print(eventname,sheetname)
-        for key, value in event.cells.table.items():
-            row = key[0]
-            col = key[1]
+        for cell, value in event.cells.table.items():
+            row = cell[0]
+            col = cell[1]
             print(row,col,value)
             penaltyTime = app.penaltySum(row)    
             app.inputSheet.set_cell_data(row,4,value = locale.format_string('%0.2f', penaltyTime) )
@@ -263,6 +296,15 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_T.disable_bindings("All")
         self.inputSheet_T.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
         self.inputSheet_T.extra_bindings("end_edit_cell", func=self.endEditCell)
+        self.inputSheet_T.extra_bindings("end_copy", func=self.endCopy)
+        
+        self.inputSheet_T.popup_menu_add_command(
+            "Exchange Cell",
+            self.exchangeCell,
+            index_menu=False,
+            header_menu=False,
+            empty_space_menu=False,
+        )
         #----- Input Page 1-------
         
         self.inputTab_1.grid_columnconfigure(0, weight = 1)
@@ -294,7 +336,7 @@ class sheetapp_tk(tkinter.Tk):
         
         self.inputSheet_1.disable_bindings("All")
         self.inputSheet_1.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
-        self.inputSheet_T.extra_bindings("end_edit_cell", func=self.endEditCell)
+        self.inputSheet_1.extra_bindings("end_edit_cell", func=self.endEditCell)
         
         #----- Input Page 2-------
         
@@ -327,7 +369,7 @@ class sheetapp_tk(tkinter.Tk):
         
         self.inputSheet_2.disable_bindings("All")
         self.inputSheet_2.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
-        self.inputSheet_T.extra_bindings("end_edit_cell", func=self.endEditCell)
+        self.inputSheet_2.extra_bindings("end_edit_cell", func=self.endEditCell)
         
         self.setRun(1)
         self.tabControl.select(3)
@@ -740,7 +782,7 @@ def copyToGoogleSheet():
             messagebox.showerror(title="Fehler", message=e)
     else:
         messagebox.showerror(title="Fehler", message="Falscher Wettbewerb aktiv!")
-
+    
 #-------------------------------------------------------------------
 # Main program
 #-------------------------------------------------------------------
