@@ -88,8 +88,8 @@ class sheetapp_tk(tkinter.Tk):
             self.run = 0
         self.runText.set(self.headerText[self.run])
 
-    def exchangeCell(self):
-        print("Excange: ")
+    def swapCells(self):
+        print("Swap: ")
         cells = self.inputSheet.get_selected_cells()
         if self.xRow >= 0:
             for cell in cells:
@@ -104,7 +104,7 @@ class sheetapp_tk(tkinter.Tk):
                 self.xCol = -1
                 self.xVal = ''
         else:
-            messagebox.showerror(title="Fehler", message="Keine Quelle ausgewält!")
+            messagebox.showerror(title="Fehler", message="Swap: Keine Quelle ausgewählt!")
                
     def endCopy(self,event):
         print("Copy: ")
@@ -299,8 +299,8 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_T.extra_bindings("end_copy", func=self.endCopy)
         
         self.inputSheet_T.popup_menu_add_command(
-            "Exchange Cell",
-            self.exchangeCell,
+            "Swap Cell",
+            self.swapCells,
             index_menu=False,
             header_menu=False,
             empty_space_menu=False,
