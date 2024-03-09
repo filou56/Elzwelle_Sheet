@@ -107,10 +107,10 @@ class sheetapp_tk(tkinter.Tk):
             messagebox.showerror(title="Fehler", message="Swap: Keine Quelle ausgewählt!")
                
     def endCopy(self,event):
-        print("Copy: ")
-        eventname = event.get("eventname")
-        sheetname = event.get("sheetname")
-        print(eventname,sheetname)
+        print("Copy: ",event)
+        # eventname = event.get("eventname")
+        # sheetname = event.get("sheetname")
+        # print(eventname,sheetname)
         for cell, value in event.cells.table.items():
             self.xRow = cell[0]
             self.xCol = cell[1]
@@ -118,9 +118,10 @@ class sheetapp_tk(tkinter.Tk):
             print(self.xRow,self.xCol,self.xVal)          
                   
     def endEditCell(self, event):
-        eventname = event.get("eventname")
-        sheetname = event.get("sheetname")
-        print(eventname,sheetname)
+        print("EndEditCell: ")
+        # eventname = event.get("eventname")
+        # sheetname = event.get("sheetname")
+        # print(eventname,sheetname)
         for cell, value in event.cells.table.items():
             row = cell[0]
             col = cell[1]
@@ -137,7 +138,26 @@ class sheetapp_tk(tkinter.Tk):
             else:
                 app.inputSheet[row,col].highlight(bg='linen')
             calculateTimes(row)
-        
+    
+    def validateEdits(self, event):
+        print("Validate: ")
+        for cell, value in event.cells.table.items():
+            row = cell[0]
+            col = cell[1]
+            print(row,col,value)
+            try:
+                if col > 5:
+                    num = int(value.replace(',','.'))
+                    return "{:d}".format(num)
+                else:
+                    num = float(value.replace(',','.'))
+                    return "{:.2f}".format(num).replace('.',',')
+            except Exception as error:
+                print(error)
+                messagebox.showerror(title="Fehler", message="Keine gültige Zahl !")
+        return
+
+       
     def initialize(self):
         individuals = config.getint('competition','individuals')
         teams = config.getint('competition','teams')
@@ -215,6 +235,9 @@ class sheetapp_tk(tkinter.Tk):
         self.startSheet.grid(column = 0, row = 0)
         self.startSheet.grid(row = 0, column = 0, sticky = "nswe")
         self.startSheet.span('A:').align('right')
+        self.startSheet.span('A').readonly()
+        self.startSheet.span('B').readonly()
+        self.startSheet.span('C').readonly()
         
         self.startSheet.disable_bindings("All")
         self.startSheet.enable_bindings("edit_cell","single_select","drag_select","row_select","copy")
@@ -238,6 +261,9 @@ class sheetapp_tk(tkinter.Tk):
         self.finishSheet.grid(column = 0, row = 0)
         self.finishSheet.grid(row = 0, column = 0, sticky = "nswe")
         self.finishSheet.span('A:').align('right')
+        self.finishSheet.span('A').readonly()
+        self.finishSheet.span('B').readonly()
+        self.finishSheet.span('C').readonly()
         
         self.finishSheet.disable_bindings("All")
         self.finishSheet.enable_bindings("edit_cell","single_select","drag_select","row_select","copy")
@@ -263,6 +289,9 @@ class sheetapp_tk(tkinter.Tk):
         
         self.courseSheet.disable_bindings("All")
         self.courseSheet.enable_bindings("edit_cell","single_select","drag_select","row_select","copy")
+        self.courseSheet.span('A').readonly()
+        self.courseSheet.span('B').readonly()
+        self.courseSheet.span('C').readonly()
         
         #----- Input Page Training -------
         
@@ -292,6 +321,7 @@ class sheetapp_tk(tkinter.Tk):
         
         inputSpan = self.inputSheet_T[:]
         inputSpan.align('right')
+        self.inputSheet_T.span('A').readonly()
         
         self.inputSheet_T.disable_bindings("All")
         self.inputSheet_T.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
@@ -305,6 +335,8 @@ class sheetapp_tk(tkinter.Tk):
             header_menu=False,
             empty_space_menu=False,
         )
+        
+        self.inputSheet_T.edit_validation(self.validateEdits)
         
         #----- Input Page 1-------
         
@@ -334,6 +366,7 @@ class sheetapp_tk(tkinter.Tk):
         
         inputSpan = self.inputSheet_1[:]
         inputSpan.align('right')
+        self.inputSheet_1.span('A').readonly()
         
         self.inputSheet_1.disable_bindings("All")
         self.inputSheet_1.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
@@ -376,6 +409,7 @@ class sheetapp_tk(tkinter.Tk):
         
         inputSpan = self.inputSheet_2[:]
         inputSpan.align('right')
+        self.inputSheet_2.span('A').readonly()
         
         self.inputSheet_2.disable_bindings("All")
         self.inputSheet_2.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
@@ -826,6 +860,7 @@ if __name__ == '__main__':
         'url':'144db7091e4a45cbb0e14506aeed779a.s2.eu.hivemq.cloud',
         'port':8883,
         'tls_enabled':'yes',
+        'auth_enabled':'yes',
         'user':'welle',
         'password':'elzwelle', 
     }
@@ -887,7 +922,8 @@ if __name__ == '__main__':
         if config.getboolean('mqtt','tls_enabled'):
             mqtt_client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
         # set username and password
-        mqtt_client.username_pw_set(config.get('mqtt','user'),
+        if config.getboolean('mqtt','auth_enabled'):
+            mqtt_client.username_pw_set(config.get('mqtt','user'),
                                     config.get('mqtt','password'))
         # connect to HiveMQ Cloud on port 8883 (default for MQTT)
         mqtt_client.connect(config.get('mqtt','url'), config.getint('mqtt','port'))
