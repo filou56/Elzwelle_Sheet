@@ -439,6 +439,9 @@ class sheetapp_tk(tkinter.Tk):
             if penalty is str:
                 sumSeconds = sumSeconds + locale.atof(penalty)
             sumSeconds = sumSeconds + int(penalty)
+        print("Penalty: ",sumSeconds)
+        payload = "{:} {:}".format(rowData[0],sumSeconds)    
+        mqtt_client.publish("elzwelle/stopwatch/penalty/update",payload=payload, qos=1)
         return sumSeconds   
     
     def refresh(self):
@@ -762,13 +765,28 @@ def on_message(client, userdata, msg):
                                 qos=1)
 
 def calculateTimes(row):
-    tsStart  = locale.atof(app.inputSheet.get_cell_data(row,1))
-    tsFinish = locale.atof(app.inputSheet.get_cell_data(row,2))
-    tripTime = tsFinish - tsStart
-    app.inputSheet.set_cell_data(row,3,value = locale.format_string('%0.2f',tripTime))
+    tsStart     = locale.atof(app.inputSheet.get_cell_data(row,1))
+    tsFinish    = locale.atof(app.inputSheet.get_cell_data(row,2))
     penaltyTime = locale.atof(app.inputSheet.get_cell_data(row,4))
-    finalTime = tripTime + penaltyTime
-    app.inputSheet.set_cell_data(row,5,value = locale.format_string('%0.2f',finalTime))
+    
+    if tsStart > 0.0:
+        tripTime = tsFinish - tsStart    
+        if tripTime < 0.0:
+            tripTime  = 0.0
+            finalTime = 0.0
+        else:    
+            finalTime = tripTime + penaltyTime
+        
+        trip = locale.format_string('%0.2f',tripTime)
+        app.inputSheet.set_cell_data(row,3,value = trip)
+        
+        final = locale.format_string('%0.2f',finalTime)
+        app.inputSheet.set_cell_data(row,5,value = final)
+        
+        payload = "{:} {:} {:} {:}".format(app.inputSheet[row,0].data,trip,int(penaltyTime),final)    
+        mqtt_client.publish("elzwelle/stopwatch/result/update",payload=payload, qos=1)
+
+#-----------------------------------------------------------------------
 
 GATE_CELLS        = 25
 GATE_CELLS_OFFSET = 6
@@ -831,6 +849,7 @@ def copyToGoogleSheet():
             
             colSpan = "A"+str(currently_selected.row+1)+":F"+str(currently_selected.row+1)
             app.inputSheet.span(colSpan).highlight(bg = "aquamarine")
+            
         except Exception as e:
             colSpan = "A"+str(currently_selected.row+1)+":F"+str(currently_selected.row+1)
             app.inputSheet.span(colSpan).highlight(bg = "pink")
