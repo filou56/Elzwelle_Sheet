@@ -71,18 +71,27 @@ class sheetapp_tk(tkinter.Tk):
             self.run_1.set(False)
             self.run_2.set(False)
             self.inputSheet = self.inputSheet_T
+            self.inputSheet_1.disable_bindings("edit_cell")
+            self.inputSheet_2.disable_bindings("edit_cell")
+            self.inputSheet_T.enable_bindings("edit_cell")
             self.tabControl.select(3)
         elif run == 2:
             self.training.set(False)
             self.run_1.set(True)
             self.run_2.set(False)
             self.inputSheet = self.inputSheet_1
+            self.inputSheet_2.disable_bindings("edit_cell")
+            self.inputSheet_T.disable_bindings("edit_cell")
+            self.inputSheet_1.enable_bindings("edit_cell")
             self.tabControl.select(4)
         elif run == 3:
             self.training.set(False)
             self.run_1.set(False)
             self.run_2.set(True)
             self.inputSheet = self.inputSheet_2
+            self.inputSheet_1.disable_bindings("edit_cell")
+            self.inputSheet_T.disable_bindings("edit_cell")
+            self.inputSheet_2.enable_bindings("edit_cell")
             self.tabControl.select(5)
         else:
             self.run = 0
@@ -137,6 +146,7 @@ class sheetapp_tk(tkinter.Tk):
                     app.inputSheet[row,col].highlight(bg = "aquamarine")
             else:
                 app.inputSheet[row,col].highlight(bg='linen')
+                
             calculateTimes(row)
     
     def validateEdits(self, event):
@@ -242,7 +252,7 @@ class sheetapp_tk(tkinter.Tk):
         
         self.startSheet.disable_bindings("All")
         self.startSheet.enable_bindings("edit_cell","single_select","drag_select","row_select","copy")
-        
+       
         #----- Finish Page -------
                  
         self.finishTab.grid_columnconfigure(0, weight = 1)
@@ -325,7 +335,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_T.span('A').readonly()
         
         self.inputSheet_T.disable_bindings("All")
-        self.inputSheet_T.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_T.enable_bindings("single_select","drag_select","right_click_popup_menu","row_select","copy")
         self.inputSheet_T.extra_bindings("end_edit_cell", func=self.endEditCell)
         self.inputSheet_T.extra_bindings("end_copy", func=self.endCopy)
         
@@ -370,7 +380,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_1.span('A').readonly()
         
         self.inputSheet_1.disable_bindings("All")
-        self.inputSheet_1.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_1.enable_bindings("single_select","drag_select","right_click_popup_menu","row_select","copy")
         self.inputSheet_1.extra_bindings("end_edit_cell", func=self.endEditCell)
         self.inputSheet_1.extra_bindings("end_copy", func=self.endCopy)
         
@@ -381,6 +391,8 @@ class sheetapp_tk(tkinter.Tk):
             header_menu=False,
             empty_space_menu=False,
         )
+        
+        self.inputSheet_1.edit_validation(self.validateEdits)
         
         #----- Input Page 2-------
         
@@ -413,7 +425,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_2.span('A').readonly()
         
         self.inputSheet_2.disable_bindings("All")
-        self.inputSheet_2.enable_bindings("edit_cell","single_select","drag_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_2.enable_bindings("single_select","drag_select","right_click_popup_menu","row_select","copy")
         self.inputSheet_2.extra_bindings("end_edit_cell", func=self.endEditCell)
         self.inputSheet_2.extra_bindings("end_copy", func=self.endCopy)
         
@@ -424,6 +436,8 @@ class sheetapp_tk(tkinter.Tk):
             header_menu=False,
             empty_space_menu=False,
         )
+        
+        self.inputSheet_2.edit_validation(self.validateEdits)
         
         # ------------------------------------------------------------
         
@@ -464,7 +478,6 @@ class sheetapp_tk(tkinter.Tk):
         elif tab == "Lauf 2": 
             return self.inputSheet_2
         
-
     def saveSheet(self):
         saveSheet = self.getSelectedSheet()
         print("Save: "+saveSheet.name)
@@ -547,19 +560,19 @@ class sheetapp_tk(tkinter.Tk):
             self.courseSheet.data = []
 
     def inputSheet_T_Cleat(self):
-        print("inputSheet_T_Cleat")
-        print("courseSheetClear")
+        print("inputSheet_T_Clear")
         if messagebox.askyesno("Training", "Alle Daten löschen ?"):
-            self.inputSheet_T.deselect()
+            self.inputSheet_T.dehighlight_all()
             self.inputSheet_T.data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+\
                                       (["0"]*26) for r in range(self.individuals)]+\
                                       [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+\
                                       (["0"]*26) for r in range(self.teams)]
+            
 
     def inputSheet_1_Clear(self):
         print("inputSheet_1_Clear")
         if messagebox.askyesno("Lauf_1", "Alle Daten löschen ?"):
-            self.inputSheet_1.deselect()
+            self.inputSheet_1.dehighlight_all()
             self.inputSheet_1.data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+\
                                       (["0"]*26) for r in range(self.individuals)]+\
                                       [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+\
@@ -568,7 +581,7 @@ class sheetapp_tk(tkinter.Tk):
     def inputSheet_2_Clear(self):
         print("inputSheet_2_Clear")
         if messagebox.askyesno("Lauf_2", "Alle Daten löschen ?"):
-            self.inputSheet_2.deselect()
+            self.inputSheet_2.dehighlight_all()
             self.inputSheet_2.data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+\
                                       (["0"]*26) for r in range(self.individuals)]+\
                                       [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+\
@@ -584,7 +597,6 @@ class sheetapp_tk(tkinter.Tk):
         if tab == 4: self.inputSheet_1_Clear()
         if tab == 5: self.inputSheet_2_Clear()
         
-
 #-------------------------------------------------------------------
 
 # setting callbacks for different events to see if it works, print the message etc.
