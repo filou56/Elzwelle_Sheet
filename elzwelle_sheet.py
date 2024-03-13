@@ -159,8 +159,8 @@ class sheetapp_tk(tkinter.Tk):
 
        
     def initialize(self):
-        individuals = config.getint('competition','individuals')
-        teams = config.getint('competition','teams')
+        self.individuals = config.getint('competition','individuals')
+        self.teams = config.getint('competition','teams')
         #rows = individuals + teams
         noteStyle = ttk.Style()
         noteStyle.theme_use('default')
@@ -184,6 +184,7 @@ class sheetapp_tk(tkinter.Tk):
         self.menuFile = tkinter.Menu(self.menuBar, tearoff=False)
         self.menuFile.add_command(command = self.saveSheet, label="Blatt speichern")
         self.menuFile.add_command(command = self.loadSheet, label="Blatt laden")
+        self.menuFile.add_command(command = self.clearSheet, label="Blatt löschen")
         
         self.menuCompetition = tkinter.Menu(self.menuBar, tearoff=False) 
         
@@ -300,9 +301,9 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_T = Sheet(self.inputTab_T,
                                name = 'inputSheet_T',
                                data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-                                      (["0"]*26) for r in range(individuals)]+
+                                      (["0"]*26) for r in range(self.individuals)]+
                                       [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+
-                                      (["0"]*26) for r in range(teams)],
+                                      (["0"]*26) for r in range(self.teams)],
                                header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                         [f"{c+1}" for c in range(25)]+["Ziel"],
                                header_bg = "azure",
@@ -345,9 +346,9 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_1 = Sheet(self.inputTab_1,
                                name = 'inputSheet_1',
                                data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-                                      (["0"]*26) for r in range(individuals)]+
+                                      (["0"]*26) for r in range(self.individuals)]+
                                       [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+
-                                      (["0"]*26) for r in range(teams)],
+                                      (["0"]*26) for r in range(self.teams)],
                                header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                         [f"{c+1}" for c in range(25)]+["Ziel"],
                                header_bg = "azure",
@@ -388,9 +389,9 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_2 = Sheet(self.inputTab_2,
                                name = 'inputSheet_2',
                                data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+
-                                      (["0"]*26) for r in range(individuals)]+
+                                      (["0"]*26) for r in range(self.individuals)]+
                                       [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+
-                                      (["0"]*26) for r in range(teams)],
+                                      (["0"]*26) for r in range(self.teams)],
                                header = ['Startnummer','ZS Start','ZS Ziel','Fahrzeit','Strafzeit','Wertung']+
                                         [f"{c+1}" for c in range(25)]+["Ziel"],
                                header_bg = "azure",
@@ -526,6 +527,64 @@ class sheetapp_tk(tkinter.Tk):
         except Exception as error:
             print(error)
             return
+    
+    def startSheetClear(self):
+        print("startSheetClear")
+        if messagebox.askyesno("Start", "Alle Daten löschen ?"):
+            self.startSheet.deselect()
+            self.startSheet.data = []
+
+    def finishSheetClear(self):
+        print("finishSheetClear")
+        if messagebox.askyesno("Ziel", "Alle Daten löschen ?"):
+            self.finishSheet.deselect()
+            self.finishSheet.data = []
+
+    def courseSheetClear(self):
+        print("courseSheetClear")
+        if messagebox.askyesno("Strecke", "Alle Daten löschen ?"):
+            self.courseSheet.deselect()
+            self.courseSheet.data = []
+
+    def inputSheet_T_Cleat(self):
+        print("inputSheet_T_Cleat")
+        print("courseSheetClear")
+        if messagebox.askyesno("Training", "Alle Daten löschen ?"):
+            self.inputSheet_T.deselect()
+            self.inputSheet_T.data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+\
+                                      (["0"]*26) for r in range(self.individuals)]+\
+                                      [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+\
+                                      (["0"]*26) for r in range(self.teams)]
+
+    def inputSheet_1_Clear(self):
+        print("inputSheet_1_Clear")
+        if messagebox.askyesno("Lauf_1", "Alle Daten löschen ?"):
+            self.inputSheet_1.deselect()
+            self.inputSheet_1.data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+\
+                                      (["0"]*26) for r in range(self.individuals)]+\
+                                      [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+\
+                                      (["0"]*26) for r in range(self.teams)]
+
+    def inputSheet_2_Clear(self):
+        print("inputSheet_2_Clear")
+        if messagebox.askyesno("Lauf_2", "Alle Daten löschen ?"):
+            self.inputSheet_2.deselect()
+            self.inputSheet_2.data = [[f"{r+1}",'0,00','0,00','0,00','0,00','0,00']+\
+                                      (["0"]*26) for r in range(self.individuals)]+\
+                                      [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+\
+                                      (["0"]*26) for r in range(self.teams)]
+                                      
+    def clearSheet(self):
+        print("Clear")
+        tab = self.tabControl.index(self.tabControl.select())
+        if tab == 0: self.startSheetClear()
+        if tab == 1: self.finishSheetClear()
+        if tab == 2: self.courseSheetClear()
+        if tab == 3: self.inputSheet_T_Cleat()
+        if tab == 4: self.inputSheet_1_Clear()
+        if tab == 5: self.inputSheet_2_Clear()
+        
+
 #-------------------------------------------------------------------
 
 # setting callbacks for different events to see if it works, print the message etc.
@@ -971,6 +1030,11 @@ if __name__ == '__main__':
         
     app.title("MQTT Tabelle Elz-Zeit")
     app.refresh()
+    
+    app.startSheet.popup_menu_add_command(
+        "Clear sheet data",
+        app.startSheetClear,
+    )
     
     app.inputSheet_1.popup_menu_add_command(
         "Copy to GOOGLE Sheet 1. Lauf",
