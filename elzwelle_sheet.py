@@ -286,7 +286,7 @@ class sheetapp_tk(tkinter.Tk):
         self.courseSheet = Sheet(self.courseTab,
                                name = 'courseSheet',
                                #data = [['0','0','0',''] for r in range(200)],
-                               header = ['Startnummer','Tornummer','Strafzeit','Kommentar'],
+                               header = ['Startnummer','Tornummer','Strafzeit','Kommentar','ID'],
                                header_bg = "azure",
                                header_fg = "black",
                                index_bg  = "azure",
@@ -303,6 +303,8 @@ class sheetapp_tk(tkinter.Tk):
         self.courseSheet.span('A').readonly()
         self.courseSheet.span('B').readonly()
         self.courseSheet.span('C').readonly()
+        self.courseSheet.span('E').readonly()
+        self.courseSheet.hide_columns(4)
         
         #----- Input Page Training -------
         
