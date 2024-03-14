@@ -137,6 +137,7 @@ class sheetapp_tk(tkinter.Tk):
             print(row,col,value)
             penaltyTime = app.penaltySum(row)    
             app.inputSheet.set_cell_data(row,4,value = locale.format_string('%0.2f', penaltyTime) )
+            
             if int(col) >= 6:
                 if int(value) >= 50:
                     app.inputSheet[row,col].highlight(bg = "pink")
@@ -148,7 +149,10 @@ class sheetapp_tk(tkinter.Tk):
                 app.inputSheet[row,col].highlight(bg='linen')
                 
             calculateTimes(row)
-    
+            
+            colSpan = "A"+str(row+1)+":F"+str(row+1)
+            app.inputSheet.span(colSpan).highlight(bg = "khaki")
+            
     def validateEdits(self, event):
         print("Validate: ")
         for cell, value in event.cells.table.items():
@@ -731,6 +735,9 @@ def on_message(client, userdata, msg):
                 
             penaltyTime = app.penaltySum(row)    
             app.inputSheet.set_cell_data(row,4,value = locale.format_string('%0.2f', penaltyTime) )
+            
+            colSpan = "A"+str(row+1)+":F"+str(row+1)
+            app.inputSheet.span(colSpan).highlight(bg = "white")           
             
             if locale.atof(app.inputSheet.get_cell_data(row,2)) > 0.0:  # TsFinish > 0
                 calculateTimes(row)
