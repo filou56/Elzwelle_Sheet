@@ -303,7 +303,7 @@ class sheetapp_tk(tkinter.Tk):
         self.courseSheet.grid(row = 0, column = 0, sticky = "nswe")
         
         self.courseSheet.disable_bindings("All")
-        self.courseSheet.enable_bindings("edit_cell","single_select","drag_select","row_select","copy")
+        self.courseSheet.enable_bindings("edit_cell","single_select","drag_select","row_select","copy","paste")
         self.courseSheet.span('A').readonly()
         self.courseSheet.span('B').readonly()
         self.courseSheet.span('C').readonly()
@@ -341,7 +341,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_T.span('A').readonly()
         
         self.inputSheet_T.disable_bindings("All")
-        self.inputSheet_T.enable_bindings("single_select","drag_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_T.enable_bindings("single_select","drag_select","right_click_popup_menu","row_select","copy","paste")
         self.inputSheet_T.extra_bindings("end_edit_cell", func=self.endEditCell)
         self.inputSheet_T.extra_bindings("end_copy", func=self.endCopy)
         
@@ -386,7 +386,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_1.span('A').readonly()
         
         self.inputSheet_1.disable_bindings("All")
-        self.inputSheet_1.enable_bindings("single_select","drag_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_1.enable_bindings("single_select","drag_select","right_click_popup_menu","row_select","copy","paste")
         self.inputSheet_1.extra_bindings("end_edit_cell", func=self.endEditCell)
         self.inputSheet_1.extra_bindings("end_copy", func=self.endCopy)
         
@@ -431,7 +431,7 @@ class sheetapp_tk(tkinter.Tk):
         self.inputSheet_2.span('A').readonly()
         
         self.inputSheet_2.disable_bindings("All")
-        self.inputSheet_2.enable_bindings("single_select","drag_select","right_click_popup_menu","row_select","copy")
+        self.inputSheet_2.enable_bindings("single_select","drag_select","right_click_popup_menu","row_select","copy","paste")
         self.inputSheet_2.extra_bindings("end_edit_cell", func=self.endEditCell)
         self.inputSheet_2.extra_bindings("end_copy", func=self.endCopy)
         
@@ -543,6 +543,10 @@ class sheetapp_tk(tkinter.Tk):
                     skipinitialspace=False,
                 )
             ]
+            for i in range(25):
+                loadSheet.column_width(i+6, 40, False, True) 
+                loadSheet.column_width(31, 50, False, True)
+                
         except Exception as error:
             print(error)
             return
@@ -573,7 +577,9 @@ class sheetapp_tk(tkinter.Tk):
                                       (["0"]*26) for r in range(self.individuals)]+\
                                       [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+\
                                       (["0"]*26) for r in range(self.teams)]
-            
+            for i in range(25):
+                self.inputSheet_T.column_width(i+6, 40, False, True) 
+                self.inputSheet_T.column_width(31, 50, False, True)
 
     def inputSheet_1_Clear(self):
         print("inputSheet_1_Clear")
@@ -583,6 +589,9 @@ class sheetapp_tk(tkinter.Tk):
                                       (["0"]*26) for r in range(self.individuals)]+\
                                       [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+\
                                       (["0"]*26) for r in range(self.teams)]
+            for i in range(25):
+                self.inputSheet_1.column_width(i+6, 40, False, True) 
+                self.inputSheet_1.column_width(31, 50, False, True)
 
     def inputSheet_2_Clear(self):
         print("inputSheet_2_Clear")
@@ -592,7 +601,10 @@ class sheetapp_tk(tkinter.Tk):
                                       (["0"]*26) for r in range(self.individuals)]+\
                                       [[f"{r*3+firstteam}",'0,00','0,00','0,00','0,00','0,00']+\
                                       (["0"]*26) for r in range(self.teams)]
-                                      
+            for i in range(25):
+                self.inputSheet_2.column_width(i+6, 40, False, True) 
+                self.inputSheet_2.column_width(31, 50, False, True)
+                                     
     def clearSheet(self):
         print("Clear")
         tab = self.tabControl.index(self.tabControl.select())
