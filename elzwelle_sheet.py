@@ -737,7 +737,7 @@ def on_message(client, userdata, msg):
             app.inputSheet.set_cell_data(row,4,value = locale.format_string('%0.2f', penaltyTime) )
             
             colSpan = "A"+str(row+1)+":F"+str(row+1)
-            app.inputSheet.span(colSpan).highlight(bg = "white")           
+            app.inputSheet.span(colSpan).highlight(bg = "khaki")           
             
             if locale.atof(app.inputSheet.get_cell_data(row,2)) > 0.0:  # TsFinish > 0
                 calculateTimes(row)
