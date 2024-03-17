@@ -1006,10 +1006,13 @@ if __name__ == '__main__':
             print( f'Home path: { home_dir }' )
             client_secret_file = os.path.join(home_dir,client_secret_file)
         print( f'Client secret path: { client_secret_file }' )
+        print(config.get('google','spreadsheet_name').strip('"'))
         google_client = gspread.service_account(filename=client_secret_file)
         google_client.http_client.set_timeout(5)
         # Open a sheet from a spreadsheet in one go
-        wks_input = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(0)
+        wks_input = google_client.open(config.get('google','spreadsheet_name').strip('"')).get_worksheet_by_id(config.get('google','sheet_id'))
+        #wks_input = google_client.open(config.get('google','spreadsheet_name').strip('"')).get_worksheet_by_id(722639626)
+        #wks_input = google_client.open("1vJP80iOBNUBCql9idg6TULomgZXB10W-CIDQJ5yWsHk").get_worksheet(13)
         
         # # Open a sheet from a spreadsheet in one go
         # wks_start = google_client.open(config.get('google','spreadsheet_name')).get_worksheet(0)
