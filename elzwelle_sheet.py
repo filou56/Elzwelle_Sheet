@@ -914,8 +914,9 @@ def copyToGoogleSheet():
         
             # Zeile aus Google holen
             gData = wks_input.row_values(row)
+            #gData = wks_input.batch_get(["M5:AN5"])
             print("GOD: ",gData)
-            
+        
             if tab == 4:
                 print("COM: Lauf 1")
                 gTzStartIdx     = tksheet.alpha2num("M")-1
@@ -938,6 +939,7 @@ def copyToGoogleSheet():
             
             wks_input.update([gData[gTzStartIdx:gTor_1_Idx+GATE_CELLS+1]],gRange,
                               value_input_option='USER_ENTERED')
+            
             
             colSpan = "A"+str(currently_selected.row+1)+":F"+str(currently_selected.row+1)
             app.inputSheet.span(colSpan).highlight(bg = "aquamarine")
@@ -1012,6 +1014,7 @@ if __name__ == '__main__':
         # Open a sheet from a spreadsheet in one go
         wks_input = google_client.open(config.get('google','spreadsheet_name').strip('"')).get_worksheet_by_id(config.get('google','sheet_id'))
         #wks_input = google_client.open(config.get('google','spreadsheet_name').strip('"')).get_worksheet_by_id(722639626)
+        #wks_input = google_client.open(config.get('google','spreadsheet_name').strip('"')).get_worksheet(0)
         #wks_input = google_client.open("1vJP80iOBNUBCql9idg6TULomgZXB10W-CIDQJ5yWsHk").get_worksheet(13)
         
         # # Open a sheet from a spreadsheet in one go
